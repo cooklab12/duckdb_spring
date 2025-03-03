@@ -1,0 +1,21 @@
+// application.yml
+```yaml
+spring:
+  profiles:
+    active: s3  # or s3-iceberg
+
+aws:
+  s3:
+    bucket: your-bucket-name
+    region: your-region  # e.g., us-east-1
+    folder: your/folder/path  # e.g., data/duckdb or env/dev/duckdb
+  access:
+    key: your-aws-access-key
+  secret:
+    key: your-aws-secret-key
+```
+
+
+
+java -jar your-app.jar --aws.s3.folder=env/dev/duckdb
+
