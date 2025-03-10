@@ -1,0 +1,34 @@
+python pandas_parquet_join.py \
+  --table1 /path/to/local/table1.parquet \
+  --table2 /path/to/local/table2.parquet \
+  --table3 /path/to/local/table3.parquet \
+  --start_date 2023-01-01 \
+  --end_date 2023-01-31 \
+  --date_column transaction_date \
+  --join_key1 customer_id \
+  --join_key2 product_id \
+  --output joined_results.json \
+  --chunk_size 200000
+
+
+  python parquet_join_json.py \
+  --table1 /hdfs/path/to/your/first/table \
+  --table2 /hdfs/path/to/your/second/table \
+  --table3 /hdfs/path/to/your/third/table \
+  --start_date 2023-01-01 \
+  --end_date 2023-01-31 \
+  --date_column your_date_column_name \
+  --output path/to/save/result.json
+
+
+  # Path to your parquet file
+parquet_file = "path/to/your/file.parquet"
+
+# Read the parquet file
+df = pd.read_parquet(parquet_file)
+
+# Path for the output CSV file
+csv_file = "path/to/your/output.csv"
+
+# Write to CSV
+df.to_csv(csv_file, index=False)
