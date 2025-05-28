@@ -1,0 +1,7 @@
+/app/src/main/java/com/example/demo/repository/FileDetailsRepository.java
+/app/src/main/java/com/example/demo/config/DuckDBConfig.java
+/app/src/main/java/com/example/demo/config/S3IcebergConfig.java
+/app/src/main/java/com/example/demo/DemoApplication.java
+/app/src/main/java/com/example/demo/config/S3DuckDBConfig.java
+/app/src/main/java/com/example/demo/controller/FileDetailsController.java
+/app/src/main/java/com/example/demo/model/FileDetails.java
