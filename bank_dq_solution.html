@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataGuard - Bank Data Quality Solution</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Navigation */
+        .nav {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 0 2rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab.active {
+            color: #495057;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .nav-tab:hover {
+            color: #495057;
+            background: #f1f3f4;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            min-height: calc(100vh - 120px);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding: 1.5rem;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Rule Builder */
+        .rule-builder {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .rule-condition {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-passed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-running {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        /* Progress Bar */
+        .progress {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        /* Charts Placeholder */
+        .chart-placeholder {
+            height: 300px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-style: italic;
+            border: 1px solid #dee2e6;
+        }
+
+        /* Search */
+        .search-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        /* Workflow Steps */
+        .workflow-steps {
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .workflow-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-weight: bold;
+            color: #6c757d;
+        }
+
+        .step-circle.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .step-circle.completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .workflow-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: #e9ecef;
+            z-index: -1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        /* Tree Structure */
+        .tree {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .tree li {
+            margin: 0.5rem 0;
+        }
+
+        .tree-item {
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tree-item:hover {
+            background: #e9ecef;
+        }
+
+        .tree-item.selected {
+            background: #667eea;
+            color: white;
+        }
+
+        .tree-toggle {
+            width: 20px;
+            text-align: center;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <span>🛡️</span>
+                DataGuard Pro
+            </div>
+            <div class="user-info">
+                <span>Welcome, Sarah Mitchell</span>
+                <span>|</span>
+                <span>Data Quality Manager</span>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('dashboard')">Dashboard</button>
+                <button class="nav-tab" onclick="showTab('catalog')">Data Catalog</button>
+                <button class="nav-tab" onclick="showTab('profiling')">Data Profiling</button>
+                <button class="nav-tab" onclick="showTab('rules')">Rule Management</button>
+                <button class="nav-tab" onclick="showTab('execution')">Execution Monitor</button>
+                <button class="nav-tab" onclick="showTab('results')">Results & Analysis</button>
+                <button class="nav-tab" onclick="showTab('workflow')">Workflow</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="content-area">
+                    <h1>Data Quality Dashboard</h1>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">1,247</div>
+                            <div class="stat-label">Active Rules</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">98.7%</div>
+                            <div class="stat-label">Overall Data Quality Score</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">23</div>
+                            <div class="stat-label">Critical Issues</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">156</div>
+                            <div class="stat-label">Tables Monitored</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">Recent Data Quality Trends</div>
+                        <div class="card-body">
+                            <div id="qualityTrendChart"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">Critical Alerts</div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Alert</th>
+                                        <th>Table</th>
+                                        <th>Rule</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Security Price Volatility Alert</td>
+                                        <td>market_data.securities</td>
+                                        <td>Price_Change_Threshold</td>
+                                        <td><span class="status-badge status-failed">Critical</span></td>
+                                        <td><button class="btn btn-primary btn-sm" onclick="showTab('results')">Investigate</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Account Balance Inconsistency</td>
+                                        <td>accounts.balances</td>
+                                        <td>Balance_Integrity_Check</td>
+                                        <td><span class="status-badge status-warning">Warning</span></td>
+                                        <td><button class="btn btn-primary btn-sm">Review</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Catalog Tab -->
+            <div id="catalog" class="tab-content">
+                <div class="sidebar">
+                    <h3>Data Sources</h3>
+                    <div class="search-box">
+                        <input type="text" class="search-input" placeholder="Search tables...">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    <ul class="tree">
+                        <li>
+                            <div class="tree-item" onclick="selectTable('hive_staging')">
+                                <span class="tree-toggle">📁</span>
+                                Hive - Staging
+                            </div>
+                        </li>
+                        <li>
+                            <div class="tree-item selected" onclick="selectTable('hive_standard')">
+                                <span class="tree-toggle">📂</span>
+                                Hive - Standard
+                            </div>
+                            <ul class="tree" style="margin-left: 1rem;">
+                                <li><div class="tree-item">📋 customer_accounts</div></li>
+                                <li><div class="tree-item">📋 transaction_history</div></li>
+                                <li><div class="tree-item">📋 market_data</div></li>
+                                <li><div class="tree-item">📋 securities_master</div></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <div class="tree-item" onclick="selectTable('hive_confirmed')">
+                                <span class="tree-toggle">📁</span>
+                                Hive - Confirmed
+                            </div>
+                        </li>
+                        <li>
+                            <div class="tree-item" onclick="selectTable('snowflake')">
+                                <span class="tree-toggle">❄️</span>
+                                Snowflake
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="content-area">
+                    <h1>Data Catalog - customer_accounts</h1>
+                    <div class="card">
+                        <div class="card-header">Table Information</div>
+                        <div class="card-body">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                                <div>
+                                    <p><strong>Database:</strong> banking_standard</p>
+                                    <p><strong>Table:</strong> customer_accounts</p>
+                                    <p><strong>Rows:</strong> 2,847,392</p>
+                                    <p><strong>Size:</strong> 1.2 GB</p>
+                                </div>
+                                <div>
+                                    <p><strong>Last Updated:</strong> 2025-07-01 06:30:00</p>
+                                    <p><strong>Data Quality Score:</strong> 96.8%</p>
+                                    <p><strong>Active Rules:</strong> 23</p>
+                                    <p><strong>Owner:</strong> Banking Operations Team</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">Schema</div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Column</th>
+                                        <th>Type</th>
+                                        <th>Nullable</th>
+                                        <th>DQ Rules</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>account_id</td>
+                                        <td>VARCHAR(20)</td>
+                                        <td>No</td>
+                                        <td>5 rules</td>
+                                        <td><button class="btn btn-primary btn-sm" onclick="showTab('profiling')">Profile</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>customer_id</td>
+                                        <td>VARCHAR(15)</td>
+                                        <td>No</td>
+                                        <td>3 rules</td>
+                                        <td><button class="btn btn-primary btn-sm" onclick="showTab('profiling')">Profile</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>account_balance</td>
+                                        <td>DECIMAL(15,2)</td>
+                                        <td>No</td>
+                                        <td>7 rules</td>
+                                        <td><button class="btn btn-primary btn-sm" onclick="showTab('profiling')">Profile</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>account_type</td>
+                                        <td>VARCHAR(50)</td>
+                                        <td>No</td>
+                                        <td>2 rules</td>
+                                        <td><button class="btn btn-primary btn-sm" onclick="showTab('profiling')">Profile</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Profiling Tab -->
+            <div id="profiling" class="tab-content">
+                <div class="content-area">
+                    <h1>Data Profiling - customer_accounts.account_balance</h1>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">2,847,392</div>
+                            <div class="stat-label">Total Records</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">99.97%</div>
+                            <div class="stat-label">Completeness</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Duplicate Values</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">847</div>
+                            <div class="stat-label">Null Values</div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div class="card">
+                            <div class="card-header">Statistical Summary</div>
+                            <div class="card-body">
+                                <table class="data-table">
+                                    <tr><td><strong>Min Value</strong></td><td>$0.00</td></tr>
+                                    <tr><td><strong>Max Value</strong></td><td>$2,847,293.45</td></tr>
+                                    <tr><td><strong>Mean</strong></td><td>$45,672.83</td></tr>
+                                    <tr><td><strong>Median</strong></td><td>$12,450.00</td></tr>
+                                    <tr><td><strong>Std Deviation</strong></td><td>$123,456.78</td></tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">Data Distribution</div>
+                            <div class="card-body">
+                                <div id="balanceDistribution"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">Anomaly Detection</div>
+                        <div class="card-body">
+                            <div id="anomalyTimeSeries"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            Recommended Data Quality Rules
+                            <button class="btn btn-primary btn-sm" style="float: right;" onclick="showTab('rules')">Create Rules</button>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>✅ <strong>Completeness Check:</strong> account_balance IS NOT NULL</li>
+                                <li>✅ <strong>Range Validation:</strong> account_balance >= 0 AND account_balance <= 10000000</li>
+                                <li>⚠️ <strong>Outlier Detection:</strong> Flag balances > 3 standard deviations from mean</li>
+                                <li>💡 <strong>Trend Analysis:</strong> Alert on unusual balance changes > 50% daily</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rule Management Tab -->
+            <div id="rules" class="tab-content">
+                <div class="sidebar">
+                    <h3>Rule Categories</h3>
+                    <ul class="tree">
+                        <li><div class="tree-item selected">📊 All Rules (1,247)</div></li>
+                        <li><div class="tree-item">✅ Completeness (423)</div></li>
+                        <li><div class="tree-item">🎯 Accuracy (312)</div></li>
+                        <li><div class="tree-item">🔗 Consistency (267)</div></li>
+                        <li><div class="tree-item">📏 Validity (156)</div></li>
+                        <li><div class="tree-item">⚡ Timeliness (89)</div></li>
+                    </ul>
+                    <hr style="margin: 1rem 0;">
+                    <h3>Rule Templates</h3>
+                    <ul class="tree">
+                        <li><div class="tree-item">📋 Banking Standards</div></li>
+                        <li><div class="tree-item">🏦 Regulatory Compliance</div></li>
+                        <li><div class="tree-item">💰 Financial Calculations</div></li>
+                        <li><div class="tree-item">👤 Customer Data</div></li>
+                    </ul>
+                </div>
+                <div class="content-area">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h1>Rule Management</h1>
+                        <button class="btn btn-primary" onclick="showRuleBuilder()">+ Create New Rule</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">Active Rules</div>
+                        <div class="card-body">
+                            <div class="search-box">
+                                <input type="text" class="search-input" placeholder="Search rules...">
+                                <span class="search-icon">🔍</span>
+                            </div>
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rule Name</th>
+                                        <th>Type</th>
+                                        <th>Table</th>
+                                        <th>Status</th>
+                                        <th>Last Run</th>
+                                        <th>Success Rate</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Account_Balance_Not_Null</td>
+                                        <td>Technical</td>
+                                        <td>customer_accounts</td>
+                                        <td><span class="status-badge status-passed">Active</span></td>
+                                        <td>2025-07-01 06:30</td>
+                                        <td>99.97%</td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm">Edit</button>
+                                            <button class="btn btn-primary btn-sm" onclick="showTab('results')">Results</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Security_Price_Volatility</td>
+                                        <td>Business</td>
+                                        <td>market_data</td>
+                                        <td><span class="status-badge status-failed">Alert</span></td>
+                                        <td>2025-07-01 06:15</td>
+                                        <td>87.2%</td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm">Edit</button>
+                                            <button class="btn btn-danger btn-sm" onclick="showTab('results')">Investigate</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Customer_ID_Format</td>
+                                        <td>Technical</td>
+                                        <td>customer_accounts</td>
+                                        <td><span class="status-badge status-passed">Active</span></td>
+                                        <td>2025-07-01 06:30</td>
+                                        <td>100%</td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm">Edit</button>
+                                            <button class="btn btn-primary btn-sm">Results</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Rule Builder Modal-like Content -->
+                    <div id="ruleBuilder" class="card" style="display: none;">
+                        <div class="card-header">
+                            Rule Builder - Security Price Volatility Check
+                            <button class="btn btn-secondary btn-sm" style="float: right;" onclick="hideRuleBuilder()">Close</button>
+                        </div>
+                        <div class="card-body">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                                <div>
+                                    <div class="form-group">
+                                        <label class="form-label">Rule Name</label>
+                                        <input type="text" class="form-control" value="Security_Price_Volatility_Alert">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Rule Type</label>
+                                        <select class="form-control">
+                                            <option>Business Rule</option>
+                                            <option>Technical Rule</option>
+                                            <option>Regulatory Rule</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Target Table</label>
+                                        <select class="form-control">
+                                            <option>market_data.securities</option>
+                                            <option>customer_accounts</option>
+                                            <option>transaction_history</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="form-group">
+                                        <label class="form-label">Priority</label>
+                                        <select class="form-control">
+                                            <option>High</option>
+                                            <option>Medium</option>
+                                            <option>Low</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Schedule</label>
+                                        <select class="form-control">
+                                            <option>Real-time</option>
+                                            <option>Hourly</option>
+                                            <option>Daily</option>
+                                            <option>Weekly</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Alert Threshold</label>
+                                        <input type="number" class="form-control" value="15" placeholder="Percentage">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rule-builder">
+                                <h4>Rule Logic Builder</h4>
+                                <div class="rule-condition">
+                                    <select class="form-control" style="width: auto;">
+                                        <option>WHERE</option>
+                                        <option>AND</option>
+                                        <option>OR</option>
+                                    </select>
+                                    <select class="form-control" style="width: auto;">
+                                        <option>price_change_pct</option>
+                                        <option>current_price</option>
+                                        <option>volume</option>
+                                    </select>
+                                    <select class="form-control" style="width: auto;">
+                                        <option>></option>
+                                        <option><</option>
+                                        <option>=</option>
+                                        <option>>=</option>
+                                        <option><=</option>
+                                    </select>
+                                    <input type="text" class="form-control" style="width: 100px;" value="15">
+                                    <button class="btn btn-danger btn-sm">Remove</button>
+                                </div>
+                                <div class="rule-condition">
+                                    <select class="form-control" style="width: auto;">
+                                        <option>AND</option>
+                                        <option>OR</option>
+                                    </select>
+                                    <select class="form-control" style="width: auto;">
+                                        <option>volume</option>
+                                        <option>price_change_pct</option>
+                                        <option>current_price</option>
+                                    </select>
+                                    <select class="form-control" style="width: auto;">
+                                        <option>></option>
+                                        <option><</option>
+                                        <option>=</option>
+                                    </select>
+                                    <input type="text" class="form-control" style="width: 150px;" value="1000000">
+                                    <button class="btn btn-danger btn-sm">Remove</button>
+                                </div>
+                                <button class="btn btn-secondary btn-sm">+ Add Condition</button>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Generated SQL</label>
+                                <textarea class="form-control" rows="6" readonly>
+SELECT security_id, symbol, current_price, previous_price, 
+       ((current_price - previous_price) / previous_price * 100) as price_change_pct,
+       volume
+FROM market_data.securities 
+WHERE ABS((current_price - previous_price) / previous_price * 100) > 15 
+  AND volume > 1000000
+  AND trade_date = CURRENT_DATE</textarea>
+                            </div>
+
+                            <div style="text-align: right;">
+                                <button class="btn btn-secondary">Test Rule</button>
+                                <button class="btn btn-primary">Save Rule</button>
+                                <button class="btn btn-success">Save & Activate</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Execution Monitor Tab -->
+            <div id="execution" class="tab-content">
+                <div class="content-area">
+                    <h1>Execution Monitor</h1>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">156</div>
+                            <div class="stat-label">Rules Running</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">23</div>
+                            <div class="stat-label">Queued</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">1,068</div>
+                            <div class="stat-label">Completed Today</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">12</div>
+                            <div class="stat-label">Failed</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">Real-time Execution Status</div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rule Name</th>
+                                        <th>Table</th>
+                                        <th>Status</th>
+                                        <th>Progress</th>
+                                        <th>Start Time</th>
+                                        <th>ETA</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Daily_Balance_Reconciliation</td>
+                                        <td>customer_accounts</td>
+                                        <td><span class="status-badge status-running">Running</span></td>
+                                        <td>
+                                            <div class="progress">
+                                                <div class="progress-bar" style="width: 75%"></div>
+                                            </div>
+                                            75%
+                                        </td>
+                                        <td>06:00:00</td>
+                                        <td>2 min</td>
+                                        <td><button class="btn btn-warning btn-sm">Pause</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Transaction_Anomaly_Detection</td>
+                                        <td>transaction_history</td>
+                                        <td><span class="status-badge status-running">Running</span></td>
+                                        <td>
+                                            <div class="progress">
+                                                <div class="progress-bar" style="width: 45%"></div>
+                                            </div>
+                                            45%
+                                        </td>
+                                        <td>06:15:00</td>
+                                        <td>8 min</td>
+                                        <td><button class="btn btn-warning btn-sm">Pause</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Market_Data_Completeness</td>
+                                        <td>market_data</td>
+                                        <td><span class="status-badge status-passed">Completed</span></td>
+                                        <td>
+                                            <div class="progress">
+                                                <div class="progress-bar" style="width: 100%"></div>
+                                            </div>
+                                            100%
+                                        </td>
+                                        <td>05:45:00</td>
+                                        <td>-</td>
+                                        <td><button class="btn btn-primary btn-sm" onclick="showTab('results')">View Results</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">Execution Performance</div>
+                        <div class="card-body">
+                            <div id="executionPerformance"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results & Analysis Tab -->
+            <div id="results" class="tab-content">
+                <div class="content-area">
+                    <h1>Results & Analysis - Security Price Volatility Alert</h1>
+                    
+                    <div class="card">
+                        <div class="card-header">Rule Execution Summary</div>
+                        <div class="card-body">
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                                <div style="text-align: center;">
+                                    <div style="font-size: 2rem; font-weight: bold; color: #dc3545;">247</div>
+                                    <div>Failed Records</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 2rem; font-weight: bold; color: #28a745;">12,453</div>
+                                    <div>Passed Records</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 2rem; font-weight: bold; color: #dc3545;">1.94%</div>
+                                    <div>Failure Rate</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 2rem; font-weight: bold; color: #6c757d;">12,700</div>
+                                    <div>Total Records</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            Failed Records - High Volatility Securities
+                            <button class="btn btn-primary btn-sm" style="float: right;" onclick="showImpactAnalysis()">Impact Analysis</button>
+                        </div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Security ID</th>
+                                        <th>Symbol</th>
+                                        <th>Price Change %</th>
+                                        <th>Current Price</th>
+                                        <th>Volume</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background: #ffebee;">
+                                        <td>SEC001234</td>
+                                        <td>TECH_CORP</td>
+                                        <td style="color: #d32f2f; font-weight: bold;">-23.4%</td>
+                                        <td>$87.45</td>
+                                        <td>2,847,392</td>
+                                        <td><button class="btn btn-primary btn-sm" onclick="drillDown('SEC001234')">Drill Down</button></td>
+                                    </tr>
+                                    <tr style="background: #ffebee;">
+                                        <td>SEC005678</td>
+                                        <td>BANK_STOCK</td>
+                                        <td style="color: #d32f2f; font-weight: bold;">-18.7%</td>
+                                        <td>$45.23</td>
+                                        <td>1,923,847</td>
+                                        <td><button class="btn btn-primary btn-sm" onclick="drillDown('SEC005678')">Drill Down</button></td>
+                                    </tr>
+                                    <tr style="background: #e8f5e8;">
+                                        <td>SEC009876</td>
+                                        <td>GROWTH_INC</td>
+                                        <td style="color: #2e7d32; font-weight: bold;">+19.2%</td>
+                                        <td>$156.78</td>
+                                        <td>3,451,923</td>
+                                        <td><button class="btn btn-primary btn-sm" onclick="drillDown('SEC009876')">Drill Down</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Impact Analysis Section -->
+                    <div id="impactAnalysis" class="card" style="display: none;">
+                        <div class="card-header">
+                            Impact Analysis - TECH_CORP (SEC001234)
+                            <button class="btn btn-secondary btn-sm" style="float: right;" onclick="hideImpactAnalysis()">Close</button>
+                        </div>
+                        <div class="card-body">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                                <div class="card">
+                                    <div class="card-header">Affected Customer Accounts</div>
+                                    <div class="card-body">
+                                        <div style="font-size: 1.5rem; font-weight: bold; color: #dc3545; margin-bottom: 1rem;">
+                                            1,247 accounts impacted
+                                        </div>
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Account ID</th>
+                                                    <th>Customer</th>
+                                                    <th>Holdings</th>
+                                                    <th>Impact ($)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>ACC789123</td>
+                                                    <td>Johnson, Michael</td>
+                                                    <td>500 shares</td>
+                                                    <td style="color: #d32f2f;">-$13,420</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>ACC456789</td>
+                                                    <td>Smith, Sarah</td>
+                                                    <td>250 shares</td>
+                                                    <td style="color: #d32f2f;">-$6,710</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>ACC123456</td>
+                                                    <td>Brown, Robert</td>
+                                                    <td>1,000 shares</td>
+                                                    <td style="color: #d32f2f;">-$26,840</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header">Portfolio Risk Analysis</div>
+                                    <div class="card-body">                            <div id="riskExposure"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">Historical Trend Analysis</div>
+                        <div class="card-body">
+                            <div id="volatilityTimeSeries"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow Tab -->
+            <div id="workflow" class="tab-content">
+                <div class="content-area">
+                    <h1>Data Quality Workflow</h1>
+                    
+                    <div class="workflow-steps">
+                        <div class="workflow-step">
+                            <div class="step-circle completed">1</div>
+                            <div>Data Ingestion</div>
+                            <small>Hive Staging</small>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-circle completed">2</div>
+                            <div>Profiling & Discovery</div>
+                            <small>Schema Analysis</small>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-circle completed">3</div>
+                            <div>Rule Definition</div>
+                            <small>Business & Technical</small>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-circle active">4</div>
+                            <div>Quality Validation</div>
+                            <small>Rule Execution</small>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-circle">5</div>
+                            <div>Issue Resolution</div>
+                            <small>Remediation</small>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-circle">6</div>
+                            <div>Data Certification</div>
+                            <small>Snowflake Load</small>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div class="card">
+                            <div class="card-header">Current Workflow Status</div>
+                            <div class="card-body">
+                                <div style="margin-bottom: 1rem;">
+                                    <strong>Staging → Standard:</strong>
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width: 85%"></div>
+                                    </div>
+                                    <small>Processing 2.3M records - 85% complete</small>
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <strong>Standard → Confirmed:</strong>
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width: 45%"></div>
+                                    </div>
+                                    <small>Quality validation in progress - 45% complete</small>
+                                </div>
+                                <div>
+                                    <strong>Confirmed → Snowflake:</strong>
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width: 0%"></div>
+                                    </div>
+                                    <small>Waiting for quality certification</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">Approval Workflow</div>
+                            <div class="card-body">
+                                <div class="approval-item" style="display: flex; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8f9fa; border-radius: 6px;">
+                                    <div style="flex: 1;">
+                                        <strong>Security Price Volatility Rule</strong><br>
+                                        <small>Created by: John Smith</small>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-success btn-sm">Approve</button>
+                                        <button class="btn btn-danger btn-sm">Reject</button>
+                                    </div>
+                                </div>
+                                <div class="approval-item" style="display: flex; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #d4edda; border-radius: 6px;">
+                                    <div style="flex: 1;">
+                                        <strong>Customer ID Format Check</strong><br>
+                                        <small>Approved by: Sarah Mitchell</small>
+                                    </div>
+                                    <div>
+                                        <span class="status-badge status-passed">Approved</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">Data Lineage & Impact</div>
+                        <div class="card-body">
+                            <div id="dataLineage"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">Quality Gates</div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Layer</th>
+                                        <th>Quality Gates</th>
+                                        <th>Pass Rate Required</th>
+                                        <th>Current Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Staging → Standard</strong></td>
+                                        <td>Schema validation, Format checks</td>
+                                        <td>100%</td>
+                                        <td><span class="status-badge status-passed">Passed</span></td>
+                                        <td><button class="btn btn-primary btn-sm">Details</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Standard → Confirmed</strong></td>
+                                        <td>Business rules, Data consistency</td>
+                                        <td>95%</td>
+                                        <td><span class="status-badge status-warning">92.3%</span></td>
+                                        <td><button class="btn btn-warning btn-sm" onclick="showTab('results')">Review Issues</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Confirmed → Snowflake</strong></td>
+                                        <td>Final certification, Completeness</td>
+                                        <td>99%</td>
+                                        <td><span class="status-badge status-warning">Pending</span></td>
+                                        <td><button class="btn btn-secondary btn-sm">Monitor</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <script>
+        // D3.js Chart Implementations
+        // Execution Performance Bar Chart
+        function createExecutionPerformanceChart() {
+            const data = [
+                {rule: 'Balance Reconciliation', time: 2.3},
+                {rule: 'Anomaly Detection', time: 4.1},
+                {rule: 'Completeness', time: 1.2},
+                {rule: 'Timeliness', time: 3.0},
+                {rule: 'Format Check', time: 2.7}
+            ];
+            const margin = {top: 20, right: 30, bottom: 40, left: 120};
+            const width = 800 - margin.left - margin.right;
+            const height = 300 - margin.top - margin.bottom;
+            const svg = d3.select("#executionPerformance")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+            const y = d3.scaleBand()
+                .domain(data.map(d => d.rule))
+                .range([0, height])
+                .padding(0.2);
+            const x = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.time) * 1.2])
+                .range([0, width]);
+            svg.append("g")
+                .call(d3.axisLeft(y));
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x).ticks(5).tickFormat(d => d + 's'));
+            svg.selectAll("rect")
+                .data(data)
+                .join("rect")
+                .attr("y", d => y(d.rule))
+                .attr("x", 0)
+                .attr("height", y.bandwidth())
+                .attr("width", d => x(d.time))
+                .attr("fill", "url(#gradientPerf)");
+            // Gradient
+            const gradient = svg.append("defs")
+                .append("linearGradient")
+                .attr("id", "gradientPerf")
+                .attr("x1", "0%")
+                .attr("y1", "0%")
+                .attr("x2", "100%")
+                .attr("y2", "0%");
+            gradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#667eea");
+            gradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#764ba2");
+        }
+
+        // Data Lineage Force-Directed Graph
+        function createDataLineageChart() {
+            const nodes = [
+                {id: 'Source System', group: 1},
+                {id: 'Hive Staging', group: 2},
+                {id: 'Hive Standard', group: 2},
+                {id: 'Hive Confirmed', group: 2},
+                {id: 'Snowflake', group: 3}
+            ];
+            const links = [
+                {source: 'Source System', target: 'Hive Staging'},
+                {source: 'Hive Staging', target: 'Hive Standard'},
+                {source: 'Hive Standard', target: 'Hive Confirmed'},
+                {source: 'Hive Confirmed', target: 'Snowflake'}
+            ];
+            const width = 800, height = 300;
+            const svg = d3.select("#dataLineage")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+            const color = d3.scaleOrdinal()
+                .domain([1,2,3])
+                .range(["#667eea", "#764ba2", "#28a745"]);
+            const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(180))
+                .force("charge", d3.forceManyBody().strength(-400))
+                .force("center", d3.forceCenter(width / 2, height / 2));
+            const link = svg.append("g")
+                .attr("stroke", "#aaa")
+                .attr("stroke-width", 2)
+                .selectAll("line")
+                .data(links)
+                .join("line");
+            const node = svg.append("g")
+                .selectAll("circle")
+                .data(nodes)
+                .join("circle")
+                .attr("r", 28)
+                .attr("fill", d => color(d.group))
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 3)
+                .call(drag(simulation));
+            const label = svg.append("g")
+                .selectAll("text")
+                .data(nodes)
+                .join("text")
+                .attr("text-anchor", "middle")
+                .attr("dy", ".35em")
+                .style("font-size", "14px")
+                .style("fill", "#fff")
+                .text(d => d.id);
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+                node
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+                label
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+            });
+            function drag(simulation) {
+                function dragstarted(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
+                function dragged(event, d) {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                }
+                function dragended(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                }
+                return d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended);
+            }
+        }
+        function createQualityTrendChart() {
+            const data = Array.from({length: 30}, (_, i) => ({
+                date: new Date(2025, 6, i + 1),
+                score: 95 + Math.random() * 5
+            }));
+
+            const margin = {top: 20, right: 30, bottom: 30, left: 40};
+            const width = 800 - margin.left - margin.right;
+            const height = 300 - margin.top - margin.bottom;
+
+            const svg = d3.select("#qualityTrendChart")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleTime()
+                .domain(d3.extent(data, d => d.date))
+                .range([0, width]);
+
+            const y = d3.scaleLinear()
+                .domain([90, 100])
+                .range([height, 0]);
+
+            const line = d3.line()
+                .x(d => x(d.date))
+                .y(d => y(d.score));
+
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+
+            svg.append("g")
+                .call(d3.axisLeft(y).ticks(5));
+
+            svg.append("path")
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "url(#gradient)")
+                .attr("stroke-width", 2)
+                .attr("d", line);
+
+            // Add gradient
+            const gradient = svg.append("defs")
+                .append("linearGradient")
+                .attr("id", "gradient")
+                .attr("x1", "0%")
+                .attr("y1", "0%")
+                .attr("x2", "100%")
+                .attr("y2", "0%");
+
+            gradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#667eea");
+
+            gradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#764ba2");
+        }
+
+        function createBalanceDistributionChart() {
+            const data = Array.from({length: 1000}, () => 
+                Math.floor(Math.exp(Math.random() * Math.log(1000000)))
+            );
+
+            const margin = {top: 20, right: 30, bottom: 30, left: 40};
+            const width = 800 - margin.left - margin.right;
+            const height = 300 - margin.top - margin.bottom;
+
+            const svg = d3.select("#balanceDistribution")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleLog()
+                .domain([100, 1000000])
+                .range([0, width]);
+
+            const histogram = d3.histogram()
+                .value(d => d)
+                .domain(x.domain())
+                .thresholds(x.ticks(50));
+
+            const bins = histogram(data);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(bins, d => d.length)])
+                .range([height, 0]);
+
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x).ticks(5, ".0s"));
+
+            svg.append("g")
+                .call(d3.axisLeft(y));
+
+            svg.selectAll("rect")
+                .data(bins)
+                .join("rect")
+                .attr("x", d => x(d.x0))
+                .attr("width", d => x(d.x1) - x(d.x0))
+                .attr("y", d => y(d.length))
+                .attr("height", d => height - y(d.length))
+                .attr("fill", "url(#gradientHistogram)");
+
+            // Add gradient
+            const gradient = svg.append("defs")
+                .append("linearGradient")
+                .attr("id", "gradientHistogram")
+                .attr("x1", "0%")
+                .attr("y1", "0%")
+                .attr("x2", "0%")
+                .attr("y2", "100%");
+
+            gradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#667eea");
+
+            gradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#764ba2");
+        }
+
+        function createAnomalyTimeSeriesChart() {
+            const generateData = () => {
+                const baseValue = 10000;
+                return Array.from({length: 100}, (_, i) => ({
+                    date: new Date(2025, 6, Math.floor(i/4) + 1, i % 24),
+                    value: baseValue + Math.random() * 1000 + (i > 80 ? 2000 : 0)
+                }));
+            };
+
+            const data = generateData();
+            
+            const margin = {top: 20, right: 30, bottom: 30, left: 60};
+            const width = 800 - margin.left - margin.right;
+            const height = 300 - margin.top - margin.bottom;
+
+            const svg = d3.select("#anomalyTimeSeries")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleTime()
+                .domain(d3.extent(data, d => d.date))
+                .range([0, width]);
+
+            const y = d3.scaleLinear()
+                .domain([d3.min(data, d => d.value) * 0.95, d3.max(data, d => d.value) * 1.05])
+                .range([height, 0]);
+
+            const line = d3.line()
+                .x(d => x(d.date))
+                .y(d => y(d.value));
+
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+
+            svg.append("g")
+                .call(d3.axisLeft(y).tickFormat(d3.format("$,.0f")));
+
+            svg.append("path")
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "#667eea")
+                .attr("stroke-width", 2)
+                .attr("d", line);
+
+            // Add anomaly highlight
+            svg.selectAll("circle")
+                .data(data.filter(d => d.value > 11500))
+                .join("circle")
+                .attr("cx", d => x(d.date))
+                .attr("cy", d => y(d.value))
+                .attr("r", 4)
+                .attr("fill", "#dc3545");
+        }
+
+        function createRiskExposureChart() {
+            const data = [
+                {category: "High Risk", value: 15},
+                {category: "Medium Risk", value: 35},
+                {category: "Low Risk", value: 50}
+            ];
+
+            const margin = {top: 20, right: 30, bottom: 30, left: 40};
+            const width = 800 - margin.left - margin.right;
+            const height = 300 - margin.top - margin.bottom;
+
+            const svg = d3.select("#riskExposure")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${width/2 + margin.left},${height/2 + margin.top})`);
+
+            const radius = Math.min(width, height) / 2;
+            
+            const color = d3.scaleOrdinal()
+                .domain(data.map(d => d.category))
+                .range(["#dc3545", "#ffc107", "#28a745"]);
+
+            const pie = d3.pie()
+                .value(d => d.value);
+
+            const arc = d3.arc()
+                .innerRadius(radius * 0.6)
+                .outerRadius(radius);
+
+            const arcs = svg.selectAll("arc")
+                .data(pie(data))
+                .join("g");
+
+            arcs.append("path")
+                .attr("d", arc)
+                .attr("fill", d => color(d.data.category))
+                .attr("stroke", "white")
+                .style("stroke-width", "2px");
+
+            arcs.append("text")
+                .attr("transform", d => `translate(${arc.centroid(d)})`)
+                .attr("dy", "0.35em")
+                .attr("text-anchor", "middle")
+                .style("fill", "white")
+                .style("font-size", "12px")
+                .text(d => d.data.category + "\n" + d.data.value + "%");
+        }
+
+        function createVolatilityTimeSeriesChart() {
+            const generateData = () => {
+                const baseValue = 100;
+                let currentValue = baseValue;
+                return Array.from({length: 30}, (_, i) => {
+                    const volatility = Math.random() * 5 - 2.5;
+                    currentValue = currentValue * (1 + volatility/100);
+                    return {
+                        date: new Date(2025, 6, i + 1),
+                        price: currentValue,
+                        volatility: Math.abs(volatility)
+                    };
+                });
+            };
+
+            const data = generateData();
+            
+            const margin = {top: 20, right: 30, bottom: 30, left: 60};
+            const width = 800 - margin.left - margin.right;
+            const height = 300 - margin.top - margin.bottom;
+
+            const svg = d3.select("#volatilityTimeSeries")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleTime()
+                .domain(d3.extent(data, d => d.date))
+                .range([0, width]);
+
+            const y = d3.scaleLinear()
+                .domain([d3.min(data, d => d.price) * 0.95, d3.max(data, d => d.price) * 1.05])
+                .range([height, 0]);
+
+            const line = d3.line()
+                .x(d => x(d.date))
+                .y(d => y(d.price));
+
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+
+            svg.append("g")
+                .call(d3.axisLeft(y).tickFormat(d => `$${d.toFixed(2)}`));
+
+            svg.append("path")
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "#667eea")
+                .attr("stroke-width", 2)
+                .attr("d", line);
+
+            // Add volatility bars
+            const barWidth = width / data.length * 0.8;
+            svg.selectAll("rect")
+                .data(data)
+                .join("rect")
+                .attr("x", d => x(d.date) - barWidth/2)
+                .attr("y", height)
+                .attr("width", barWidth)
+                .attr("height", d => height * (d.volatility/5))
+                .attr("fill", d => d.volatility > 2 ? "#dc3545" : "#28a745")
+                .attr("opacity", 0.3);
+        }
+
+        // Tab Navigation
+        function showTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Hide all nav-tabs active state
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active state to nav tab
+            event.target.classList.add('active');
+            
+            // Add slide-in animation
+            document.getElementById(tabName).classList.add('slide-in');
+            setTimeout(() => {
+                document.getElementById(tabName).classList.remove('slide-in');
+            }, 500);
+        }
+
+        // Rule Builder Functions
+        function showRuleBuilder() {
+            document.getElementById('ruleBuilder').style.display = 'block';
+            document.getElementById('ruleBuilder').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideRuleBuilder() {
+            document.getElementById('ruleBuilder').style.display = 'none';
+        }
+
+        // Impact Analysis Functions
+        function showImpactAnalysis() {
+            document.getElementById('impactAnalysis').style.display = 'block';
+            document.getElementById('impactAnalysis').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideImpactAnalysis() {
+            document.getElementById('impactAnalysis').style.display = 'none';
+        }
+
+        // Table Selection
+        function selectTable(tableName) {
+            const items = document.querySelectorAll('.tree-item');
+            items.forEach(item => item.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        // Drill Down Function
+        function drillDown(securityId) {
+            alert(`Drilling down into ${securityId} details:\n\n• Historical price trends\n• Trading volume patterns\n• Market news analysis\n• Regulatory filings\n• Analyst recommendations`);
+        }
+
+        // Simulated Real-time Updates
+        function updateProgress() {
+            const progressBars = document.querySelectorAll('.progress-bar');
+            progressBars.forEach(bar => {
+                const currentWidth = parseInt(bar.style.width);
+                if (currentWidth < 100) {
+                    bar.style.width = (currentWidth + Math.random() * 5) + '%';
+                }
+            });
+        }
+
+        // Update progress every 3 seconds
+        setInterval(updateProgress, 3000);
+
+        // Simulate real-time notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'error' ? '#dc3545' : '#667eea'};
+                color: white;
+                padding: 1rem;
+                border-radius: 6px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 1000;
+                max-width: 300px;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Show periodic notifications
+        setTimeout(() => {
+            showNotification('New rule execution completed: Customer_ID_Format');
+        }, 5000);
+
+        setTimeout(() => {
+            showNotification('Alert: High volatility detected in TECH_CORP stock', 'error');
+        }, 10000);
+
+        // Initialize tooltips and interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize D3.js charts
+            createQualityTrendChart();
+            createBalanceDistributionChart();
+            createAnomalyTimeSeriesChart();
+            createRiskExposureChart();
+            createVolatilityTimeSeriesChart();
+            createExecutionPerformanceChart();
+            createDataLineageChart();
+            // Add hover effects for table rows
+            const tableRows = document.querySelectorAll('.data-table tr');
+            tableRows.forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#f0f8ff';
+                });
+                row.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '';
+                });
+            });
+
+            // Simulate loading states
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (this.textContent.includes('Investigate') || this.textContent.includes('Drill Down')) {
+                        this.textContent = 'Loading...';
+                        this.disabled = true;
+                        setTimeout(() => {
+                            this.textContent = this.textContent.replace('Loading...', 'View Details');
+                            this.disabled = false;
+                        }, 1500);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
