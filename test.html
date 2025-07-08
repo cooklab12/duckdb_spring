@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Quality Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: #384252;
+            color: #ffffff;
+            transform: translateX(4px);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="app" class="flex h-screen">
+        <!-- Login Page -->
+        <div id="login-page" class="w-full h-full flex items-center justify-center bg-gray-200">
+            <div class="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-lg">
+                <div class="text-center">
+                    <i class="fas fa-shield-alt text-5xl text-blue-600"></i>
+                    <h2 class="mt-6 text-3xl font-bold text-gray-900">
+                        Data Quality Platform
+                    </h2>
+                    <p class="mt-2 text-sm text-gray-600">Sign in to your account</p>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <label for="role-select" class="block text-sm font-medium text-gray-700">Select your role</label>
+                        <select id="role-select" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="data-owner">Data Owner</option>
+                            <option value="data-ops">Data Operations</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button onclick="login()" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Sign In
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Application -->
+        <div id="main-app" class="hidden flex w-full">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-gray-800 text-gray-300 flex flex-col transition-all duration-300">
+                <div class="h-16 flex items-center justify-center border-b border-gray-700">
+                     <i class="fas fa-shield-alt text-2xl text-blue-500 mr-3"></i>
+                    <h1 class="text-xl font-semibold text-white">DQ Platform</h1>
+                </div>
+                <nav id="sidebar-nav" class="flex-1 px-4 py-6 space-y-2">
+                    <!-- Nav links will be populated by JS -->
+                </nav>
+                <div class="px-4 py-4 border-t border-gray-700">
+                    <div class="flex items-center">
+                        <img class="h-10 w-10 rounded-full" src="https://placehold.co/100x100/E2E8F0/4A5568?text=User" alt="User Avatar">
+                        <div class="ml-3">
+                            <p id="user-name" class="text-sm font-medium text-white"></p>
+                            <p id="user-role" class="text-xs text-gray-400"></p>
+                        </div>
+                    </div>
+                     <button onclick="logout()" class="w-full mt-4 text-left flex items-center py-2 px-4 rounded-md text-sm sidebar-link">
+                        <i class="fas fa-sign-out-alt w-6"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main id="main-content" class="flex-1 p-6 md:p-8 lg:p-10 overflow-y-auto">
+                <!-- Content will be populated by JS -->
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // --- MOCK DATA ---
+        const mockData = {
+            catalog: [
+                { id: 'ds001', name: 'Customer Accounts', source: 'Staging.CustomerDB', layer: 'Staging', tags: ['PII', 'Customer'], description: 'Contains customer account information.', columns: 15, rows: '1.2M', last_run: '2024-07-26 10:00', quality_score: 98 },
+                { id: 'ds002', name: 'Security Master', source: 'Standard.Securities', layer: 'Standard', tags: ['Market Data', 'Security'], description: 'Master list of all tradable securities.', columns: 45, rows: '500K', last_run: '2024-07-26 11:00', quality_score: 85 },
+                { id: 'ds003', name: 'Daily Transactions', source: 'Confirmed.Transactions', layer: 'Confirmed', tags: ['Transactional', 'Finance'], description: 'Confirmed daily trade transactions.', columns: 22, rows: '5M', last_run: '2024-07-26 12:00', quality_score: 99 },
+                { id: 'ds004', name: 'Account Holdings', source: 'Confirmed.Holdings', layer: 'Confirmed', tags: ['Customer', 'Holdings'], description: 'Customer account holdings per security.', columns: 8, rows: '10.5M', last_run: '2024-07-26 12:30', quality_score: 92 },
+            ],
+            rules: [
+                { id: 'rule01', name: 'Customer ID Not Null', dataset: 'Customer Accounts', type: 'Technical', severity: 'High', status: 'Passing', created_by: 'Data Owner' },
+                { id: 'rule02', name: 'Valid Email Format', dataset: 'Customer Accounts', type: 'Technical', severity: 'Medium', status: 'Passing', created_by: 'Data Owner' },
+                { id: 'rule03', name: 'Security Price Fluctuation < 10%', dataset: 'Security Master', type: 'Business', severity: 'High', status: 'Failing', created_by: 'Data Owner' },
+                { id: 'rule04', name: 'Transaction Amount > 0', dataset: 'Daily Transactions', type: 'Business', severity: 'High', status: 'Passing', created_by: 'Data Owner' },
+            ],
+            issues: [
+                { id: 'issue01', rule_id: 'rule03', rule_name: 'Security Price Fluctuation < 10%', dataset: 'Security Master', status: 'Open', assignee: 'Ops Team A', created: '2024-07-26 11:05', details: 'Price for security "XYZ" changed by 15%.' },
+                { id: 'issue02', rule_id: 'some_other_rule', rule_name: 'CUSIP format invalid', dataset: 'Security Master', status: 'In Progress', assignee: 'John Doe', created: '2024-07-25 09:30', details: '1,500 records have invalid CUSIPs.' },
+                { id: 'issue03', rule_id: 'another_rule', rule_name: 'Holding quantity mismatch', dataset: 'Account Holdings', status: 'Resolved', assignee: 'Jane Smith', created: '2024-07-24 15:00', details: 'Quantity did not match transaction log for 5 accounts.' },
+            ],
+            failedData: {
+                'rule03': [
+                    { account_id: 'ACC-1001', security_id: 'XYZ', security_name: 'TechCorp Inc.', old_price: 150.00, new_price: 172.50, change: '15.00%' },
+                    { account_id: 'ACC-2034', security_id: 'XYZ', security_name: 'TechCorp Inc.', old_price: 150.00, new_price: 172.50, change: '15.00%' },
+                    { account_id: 'ACC-5871', security_id: 'XYZ', security_name: 'TechCorp Inc.', old_price: 150.00, new_price: 172.50, change: '15.00%' },
+                ]
+            }
+        };
+
+        // --- STATE MANAGEMENT ---
+        let currentUserRole = '';
+
+        // --- ROUTING/NAVIGATION ---
+        const routes = {
+            'data-owner': [
+                { name: 'Dashboard', icon: 'fa-tachometer-alt', page: 'ownerDashboard' },
+                { name: 'Data Catalog', icon: 'fa-book', page: 'dataCatalog' },
+                { name: 'Rule Management', icon: 'fa-gavel', page: 'ruleManagement' },
+                { name: 'Rule Results', icon: 'fa-chart-bar', page: 'ruleResults' },
+            ],
+            'data-ops': [
+                { name: 'Dashboard', icon: 'fa-tachometer-alt', page: 'opsDashboard' },
+                { name: 'Issue Management', icon: 'fa-tasks', page: 'issueManagement' },
+                { name: 'Failed Data Explorer', icon: 'fa-search-dollar', page: 'failedDataExplorer' },
+            ]
+        };
+
+        function navigate(page) {
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = window[page](); // Call the function that generates the page HTML
+            mainContent.firstChild.classList.add('fade-in');
+            
+            // Update active link
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('onclick').includes(`'${page}'`)) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        function login() {
+            currentUserRole = document.getElementById('role-select').value;
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('flex');
+            setupUIForRole(currentUserRole);
+        }
+
+        function logout() {
+            currentUserRole = '';
+            document.getElementById('login-page').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('flex');
+        }
+
+        function setupUIForRole(role) {
+            const nav = document.getElementById('sidebar-nav');
+            const userName = document.getElementById('user-name');
+            const userRole = document.getElementById('user-role');
+            
+            nav.innerHTML = '';
+            const roleRoutes = routes[role];
+            
+            roleRoutes.forEach(route => {
+                nav.innerHTML += `
+                    <a href="#" onclick="event.preventDefault(); navigate('${route.page}')" class="sidebar-link flex items-center py-2 px-4 rounded-md text-sm">
+                        <i class="fas ${route.icon} w-6"></i>
+                        <span>${route.name}</span>
+                    </a>
+                `;
+            });
+
+            if (role === 'data-owner') {
+                userName.textContent = 'Alice Owner';
+                userRole.textContent = 'Data Owner';
+            } else {
+                userName.textContent = 'Bob Operator';
+                userRole.textContent = 'Data Operations';
+            }
+            
+            // Navigate to the first page for the role
+            navigate(roleRoutes[0].page);
+        }
+
+        // --- PAGE TEMPLATES ---
+
+        // Data Owner Pages
+        function ownerDashboard() {
+            return `
+                <div class="space-y-8">
+                    <h1 class="text-3xl font-bold text-gray-800">Data Owner Dashboard</h1>
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-blue-100 text-blue-600"><i class="fas fa-database"></i></div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-500">Managed Datasets</p>
+                                    <p class="text-2xl font-semibold text-gray-800">${mockData.catalog.length}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-green-100 text-green-600"><i class="fas fa-gavel"></i></div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-500">Active Rules</p>
+                                    <p class="text-2xl font-semibold text-gray-800">${mockData.rules.length}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-red-100 text-red-600"><i class="fas fa-exclamation-triangle"></i></div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-500">Failing Rules</p>
+                                    <p class="text-2xl font-semibold text-gray-800">${mockData.rules.filter(r => r.status === 'Failing').length}</p>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600"><i class="fas fa-check-circle"></i></div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-500">Overall Quality</p>
+                                    <p class="text-2xl font-semibold text-gray-800">92%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Recent Rule Executions</h2>
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b text-sm text-gray-500">
+                                    <th class="py-2">Rule Name</th><th>Dataset</th><th>Status</th><th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${mockData.rules.slice(0, 4).map(rule => `
+                                    <tr class="border-b text-gray-700">
+                                        <td class="py-3">${rule.name}</td>
+                                        <td>${rule.dataset}</td>
+                                        <td>
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${rule.status === 'Passing' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                                ${rule.status}
+                                            </span>
+                                        </td>
+                                        <td>2024-07-26 12:30 PM</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function dataCatalog() {
+            return `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h1 class="text-3xl font-bold text-gray-800">Data Catalog</h1>
+                        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 flex items-center">
+                            <i class="fas fa-plus mr-2"></i> Add Dataset
+                        </button>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b text-sm text-gray-500">
+                                    <th class="py-2 px-4">Name</th><th>Source</th><th>Layer</th><th>Tags</th><th>Quality Score</th><th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${mockData.catalog.map(ds => `
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-3 px-4 text-gray-800 font-medium">${ds.name}</td>
+                                        <td class="text-gray-600">${ds.source}</td>
+                                        <td class="text-gray-600">${ds.layer}</td>
+                                        <td>${ds.tags.map(tag => `<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700 mr-1">${tag}</span>`).join('')}</td>
+                                        <td>
+                                            <div class="w-24 bg-gray-200 rounded-full h-2.5">
+                                              <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${ds.quality_score}%"></div>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-600 ml-2">${ds.quality_score}%</span>
+                                        </td>
+                                        <td class="py-3">
+                                            <button class="text-blue-600 hover:text-blue-800"><i class="fas fa-search"></i></button>
+                                            <button class="text-gray-500 hover:text-gray-700 ml-2"><i class="fas fa-tags"></i></button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function ruleManagement() {
+            return `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h1 class="text-3xl font-bold text-gray-800">Rule Management</h1>
+                        <button onclick="showRuleModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 flex items-center">
+                            <i class="fas fa-plus mr-2"></i> Create New Rule
+                        </button>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b text-sm text-gray-500">
+                                    <th class="py-2 px-4">Rule Name</th><th>Dataset</th><th>Type</th><th>Severity</th><th>Status</th><th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${mockData.rules.map(rule => `
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-3 px-4 text-gray-800 font-medium">${rule.name}</td>
+                                        <td class="text-gray-600">${rule.dataset}</td>
+                                        <td class="text-gray-600">${rule.type}</td>
+                                        <td><span class="px-2 py-1 text-xs font-semibold rounded-full ${rule.severity === 'High' ? 'bg-red-200 text-red-800' : 'bg-yellow-200 text-yellow-800'}">${rule.severity}</span></td>
+                                        <td><span class="px-2 py-1 text-xs font-semibold rounded-full ${rule.status === 'Passing' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${rule.status}</span></td>
+                                        <td class="py-3">
+                                            <button class="text-blue-600 hover:text-blue-800"><i class="fas fa-pencil-alt"></i></button>
+                                            <button class="text-red-500 hover:text-red-700 ml-2"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Modal for creating a rule -->
+                <div id="ruleModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+                    <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+                        <div class="mt-3">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Create a New Data Quality Rule</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" placeholder="Rule Name" class="p-2 border rounded">
+                                <select class="p-2 border rounded">
+                                    <option>Select Dataset</option>
+                                    ${mockData.catalog.map(ds => `<option>${ds.name}</option>`).join('')}
+                                </select>
+                                <select class="p-2 border rounded">
+                                    <option>Select Rule Type</option>
+                                    <option>Technical</option>
+                                    <option>Business</option>
+                                </select>
+                                <select class="p-2 border rounded">
+                                    <option>Select Severity</option>
+                                    <option>High</option>
+                                    <option>Medium</option>
+                                    <option>Low</option>
+                                </select>
+                            </div>
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700">Rule Definition (SQL)</label>
+                                <textarea rows="6" class="w-full p-2 border rounded mt-1 font-mono text-sm" placeholder="SELECT COUNT(*) FROM {{dataset}} WHERE price IS NULL"></textarea>
+                                <p class="text-xs text-gray-500 mt-1">Use \`{{dataset}}\` as a placeholder for the selected dataset.</p>
+                            </div>
+                            <div class="items-center px-4 py-3 mt-4 flex justify-end">
+                                <button onclick="hideRuleModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md mr-2 hover:bg-gray-300">Cancel</button>
+                                <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Rule</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showRuleModal() { document.getElementById('ruleModal').classList.remove('hidden'); }
+        function hideRuleModal() { document.getElementById('ruleModal').classList.add('hidden'); }
+
+        function ruleResults() {
+            const failingRule = mockData.rules.find(r => r.status === 'Failing');
+            return `
+                <div class="space-y-6">
+                    <h1 class="text-3xl font-bold text-gray-800">Rule Results</h1>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Failing Rule: ${failingRule.name}</h2>
+                        <div class="mb-4 p-4 border border-red-200 bg-red-50 rounded-lg">
+                            <p><strong>Dataset:</strong> ${failingRule.dataset}</p>
+                            <p><strong>Severity:</strong> ${failingRule.severity}</p>
+                            <p><strong>Details:</strong> Security price fluctuated by more than the 10% threshold for 1 security.</p>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">Impacted Accounts</h3>
+                        <p class="text-sm text-gray-600 mb-4">Showing all accounts holding the security that triggered the rule failure.</p>
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b text-sm text-gray-500">
+                                    <th class="py-2 px-4">Account ID</th><th>Security ID</th><th>Security Name</th><th>Old Price</th><th>New Price</th><th>Change</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${mockData.failedData[failingRule.id].map(row => `
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-3 px-4 text-gray-800 font-medium">${row.account_id}</td>
+                                        <td class="text-gray-600">${row.security_id}</td>
+                                        <td class="text-gray-600">${row.security_name}</td>
+                                        <td class="text-gray-600">$${row.old_price.toFixed(2)}</td>
+                                        <td class="text-gray-600">$${row.new_price.toFixed(2)}</td>
+                                        <td class="text-red-600 font-semibold">${row.change}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        <div class="mt-6 flex justify-end">
+                            <button onclick="navigate('issueManagement')" class="bg-red-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-700 flex items-center">
+                                <i class="fas fa-exclamation-triangle mr-2"></i> Create Issue for Ops
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Data Ops Pages
+        function opsDashboard() {
+            return `
+                <div class="space-y-8">
+                    <h1 class="text-3xl font-bold text-gray-800">Data Operations Dashboard</h1>
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-red-100 text-red-600"><i class="fas fa-folder-open"></i></div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-500">Open Issues</p>
+                                    <p class="text-2xl font-semibold text-gray-800">${mockData.issues.filter(i => i.status === 'Open').length}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600"><i class="fas fa-spinner"></i></div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-500">In Progress Issues</p>
+                                    <p class="text-2xl font-semibold text-gray-800">${mockData.issues.filter(i => i.status === 'In Progress').length}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-green-100 text-green-600"><i class="fas fa-check-double"></i></div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-500">Resolved Today</p>
+                                    <p class="text-2xl font-semibold text-gray-800">1</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- My Open Issues -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">My Assigned Issues</h2>
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b text-sm text-gray-500">
+                                    <th class="py-2 px-4">Issue ID</th><th>Rule Name</th><th>Dataset</th><th>Status</th><th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${mockData.issues.filter(i => i.status !== 'Resolved').map(issue => `
+                                    <tr class="border-b hover:bg-gray-50 cursor-pointer" onclick="navigate('issueManagement')">
+                                        <td class="py-3 px-4 text-blue-600 font-medium">${issue.id}</td>
+                                        <td class="text-gray-600">${issue.rule_name}</td>
+                                        <td class="text-gray-600">${issue.dataset}</td>
+                                        <td><span class="px-2 py-1 text-xs font-semibold rounded-full ${issue.status === 'Open' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">${issue.status}</span></td>
+                                        <td class="text-gray-600">${issue.created}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function issueManagement() {
+            const openIssue = mockData.issues[0];
+            return `
+                <div class="space-y-6">
+                    <h1 class="text-3xl font-bold text-gray-800">Issue Management</h1>
+                    <div class="flex gap-8">
+                        <!-- Issue List -->
+                        <div class="w-1/3 bg-white p-4 rounded-lg shadow">
+                            <h2 class="text-lg font-semibold mb-3">All Issues</h2>
+                            <div class="space-y-2">
+                                ${mockData.issues.map(issue => `
+                                    <div class="p-3 rounded-md border ${issue.id === openIssue.id ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'}">
+                                        <p class="font-semibold text-gray-800">${issue.rule_name}</p>
+                                        <div class="flex justify-between items-center text-sm mt-1">
+                                            <span class="text-gray-500">${issue.id}</span>
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${
+                                                issue.status === 'Open' ? 'bg-red-100 text-red-800' : 
+                                                issue.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                                            }">${issue.status}</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Issue Details -->
+                        <div class="w-2/3 bg-white p-6 rounded-lg shadow">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-gray-800">${openIssue.rule_name}</h2>
+                                    <p class="text-sm text-gray-500">Issue ID: ${openIssue.id}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-medium">Status:</span>
+                                    <select class="p-1 border rounded-md text-sm">
+                                        <option ${openIssue.status === 'Open' ? 'selected' : ''}>Open</option>
+                                        <option ${openIssue.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                                        <option ${openIssue.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-6 border-t pt-6 space-y-4">
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div><strong class="text-gray-600">Dataset:</strong> <span class="text-gray-800">${openIssue.dataset}</span></div>
+                                    <div><strong class="text-gray-600">Assignee:</strong> <span class="text-gray-800">${openIssue.assignee}</span></div>
+                                    <div><strong class="text-gray-600">Created:</strong> <span class="text-gray-800">${openIssue.created}</span></div>
+                                </div>
+                                <div>
+                                    <strong class="text-gray-600">Details:</strong>
+                                    <p class="text-gray-800 bg-gray-50 p-3 rounded-md mt-1">${openIssue.details}</p>
+                                </div>
+                                <div>
+                                    <button onclick="navigate('failedDataExplorer')" class="text-blue-600 hover:underline">
+                                        <i class="fas fa-search-dollar mr-1"></i>Investigate Failed Data
+                                    </button>
+                                </div>
+                                <div class="border-t pt-4">
+                                    <h3 class="font-semibold text-gray-700 mb-2">Comments & History</h3>
+                                    <div class="space-y-3">
+                                        <div class="text-sm"><strong class="font-medium">Alice Owner</strong> created issue <span class="text-gray-500">- 2h ago</span></div>
+                                        <div class="text-sm"><strong class="font-medium">System</strong> assigned to Ops Team A <span class="text-gray-500">- 2h ago</span></div>
+                                    </div>
+                                    <textarea class="w-full p-2 border rounded mt-4" rows="3" placeholder="Add a comment..."></textarea>
+                                    <div class="flex justify-end mt-2">
+                                        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">Add Comment</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function failedDataExplorer() {
+            const failingRule = mockData.rules.find(r => r.status === 'Failing');
+            return `
+                <div class="space-y-6">
+                    <h1 class="text-3xl font-bold text-gray-800">Failed Data Explorer</h1>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="mb-4 p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
+                            <h2 class="text-xl font-semibold text-yellow-800 mb-2">Investigation for Rule: "${failingRule.name}"</h2>
+                            <p class="text-yellow-700">This view shows the specific data that caused the rule to fail. You can analyze the data here or export it for further investigation.</p>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">Raw Failed Records</h3>
+                        <p class="text-sm text-gray-600 mb-4">Source: <span class="font-mono bg-gray-200 px-1 rounded">${mockData.catalog.find(ds => ds.name === failingRule.dataset).source}</span></p>
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b text-sm text-gray-500">
+                                    <th class="py-2 px-4">Account ID</th><th>Security ID</th><th>Security Name</th><th>Old Price</th><th>New Price</th><th>Change</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${mockData.failedData[failingRule.id].map(row => `
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-3 px-4 text-gray-800 font-medium">${row.account_id}</td>
+                                        <td class="text-gray-600">${row.security_id}</td>
+                                        <td class="text-gray-600">${row.security_name}</td>
+                                        <td class="text-gray-600">$${row.old_price.toFixed(2)}</td>
+                                        <td class="text-gray-600">$${row.new_price.toFixed(2)}</td>
+                                        <td class="text-red-600 font-semibold">${row.change}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        <div class="mt-6 flex justify-end gap-3">
+                             <button class="bg-gray-600 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-700 flex items-center">
+                                <i class="fas fa-file-export mr-2"></i> Export as CSV
+                            </button>
+                            <button class="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 flex items-center">
+                                <i class="fas fa-tools mr-2"></i> Trigger Remediation Job
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+    </script>
+</body>
+</html>
