@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Data Pipeline Creator</title>
+  <style>
+    :root{
+      --bg:#0b1020;           /* deep navy */
+      --panel:#121a33;        /* card bg */
+      --panel-2:#0e1530;
+      --muted:#7c8aa6;
+      --text:#e7ecf7;
+      --accent:#7aa2ff;       /* primary */
+      --accent-2:#22d3ee;     /* secondary */
+      --good:#34d399;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --ring: 0 0 0 3px rgba(122,162,255,.25);
+      --radius: 16px;
+      --radius-sm: 12px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(120deg, var(--bg), #0b1530 60%, #0a1226);
+      color:var(--text); font:16px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(6px);
+      background:rgba(10,18,38,.6);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .wrap{max-width:1200px; margin:0 auto; padding:16px 20px}
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{width:36px; height:36px; border-radius:10px; background:radial-gradient(circle at 30% 30%, var(--accent), transparent 40%), radial-gradient(circle at 70% 70%, var(--accent-2), transparent 40%), #0b1938; box-shadow: inset 0 0 20px rgba(255,255,255,.06), var(--shadow)}
+    h1{font-size:20px; margin:0}
+    .sub{color:var(--muted); font-size:13px}
+
+    .shell{display:grid; grid-template-columns: 1.2fr .8fr; gap:18px; padding:20px}
+    .panel{background:linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .panel .hd{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,.06)}
+    .panel .hd h2{margin:0; font-size:18px}
+
+    .stepper{display:flex; flex-wrap:wrap; gap:10px}
+    .chip{display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.02); color:var(--muted); cursor:pointer}
+    .chip[data-active="true"]{color:var(--text); background:rgba(122,162,255,.12); border-color:rgba(122,162,255,.35)}
+    .chip .dot{width:8px; height:8px; background:var(--muted); border-radius:50%}
+    .chip[data-complete="true"] .dot{background:var(--good)}
+
+    .body{padding:16px 18px; display:grid; gap:16px}
+    .grid{display:grid; grid-template-columns: repeat(12, 1fr); gap:12px}
+    .col-6{grid-column: span 6}
+    .col-4{grid-column: span 4}
+    .col-8{grid-column: span 8}
+    .col-12{grid-column: span 12}
+
+    label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
+    input, select, textarea{width:100%; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); color:var(--text); padding:10px 12px; border-radius:12px; outline:none}
+    input:focus, select:focus, textarea:focus{box-shadow:var(--ring); border-color:rgba(122,162,255,.55)}
+    textarea{min-height:84px; resize:vertical}
+
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .btn{appearance:none; border:1px solid rgba(255,255,255,.12); background:rgba(122,162,255,.14); color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer}
+    .btn.secondary{background:rgba(255,255,255,.05)}
+    .btn.ghost{background:transparent}
+    .btn.success{background:rgba(52,211,153,.15); border-color:rgba(52,211,153,.35)}
+    .btn.warning{background:rgba(245,158,11,.15); border-color:rgba(245,158,11,.35)}
+    .btn.danger{background:rgba(239,68,68,.18); border-color:rgba(239,68,68,.35)}
+
+    .tbl{width:100%; border-collapse:collapse; border:1px solid rgba(255,255,255,.08); border-radius:12px; overflow:hidden}
+    .tbl th, .tbl td{padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.06); font-size:14px}
+    .tbl th{background:rgba(255,255,255,.03); text-align:left; color:var(--muted)}
+    .tbl tr:last-child td{border-bottom:none}
+
+    .aside{position:sticky; top:78px; align-self:start}
+    .code{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:13px; white-space:pre; overflow:auto; max-height:540px; padding:16px; background:linear-gradient(180deg, #0c1330, #0a0f26); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius);
+    }
+
+    .foot{display:flex; justify-content:space-between; gap:10px; padding:14px 18px; border-top:1px solid rgba(255,255,255,.06)}
+
+    /* Coachmark (guided tour) */
+    .tour-mask{position:fixed; inset:0; background:rgba(3,6,16,.65); backdrop-filter: blur(2px); display:none; z-index:999}
+    .tour-pop{position:fixed; max-width:420px; background:linear-gradient(180deg,#121a33,#10172e); border:1px solid rgba(255,255,255,.12); color:var(--text); padding:16px; border-radius:16px; box-shadow:var(--shadow); display:none; z-index:1000}
+    .tour-pop h3{margin:0 0 6px; font-size:16px}
+    .tour-pop p{margin:0 0 12px; color:#c9d3ea; font-size:14px}
+    .tour-pop .controls{display:flex; justify-content:space-between; align-items:center; gap:8px}
+    .tour-pop .idx{color:var(--muted); font-size:12px}
+    .tour-highlight{position:fixed; outline: 3px solid var(--accent); border-radius:12px; box-shadow: 0 0 0 9999px rgba(3,6,16,.55); z-index:998; pointer-events:none}
+    .help-ico{display:inline-grid; place-items:center; width:18px; height:18px; border-radius:50%; background:rgba(122,162,255,.18); border:1px solid rgba(122,162,255,.45); color:#bcd1ff; font-size:12px; margin-left:6px; cursor:pointer}
+    .tip{color:#bcd1ff; font-size:12px}
+
+    .hidden{display:none}
+    @media (max-width: 980px){
+      .shell{grid-template-columns: 1fr}
+      .aside{position:relative; top:0}
+      .code{max-height:280px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Data Pipeline Creator</h1>
+          <div class="sub">Schema registration → transforms → target table registration → review & generate. Includes detailed coach marks for every step.</div>
+        </div>
+        <span class="spacer" style="flex:1"></span>
+        <button class="btn" id="startTourAll" title="Start full guided tour">Start Guided Tour</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="shell">
+      <section class="panel" id="builder">
+        <div class="hd">
+          <div class="stepper" id="stepper"></div>
+          <div class="row">
+            <button class="btn secondary" id="tourStep">Tour this step</button>
+            <button class="btn ghost" id="resetBtn">Reset</button>
+          </div>
+        </div>
+
+        <div class="body" id="steps">
+          <!-- STEP 1: Pipeline details -->
+          <div class="step" data-step="1" data-title="Pipeline Details">
+            <div class="grid">
+              <div class="col-6">
+                <label for="plName">Pipeline Name <span class="help-ico" data-help="#plName">?</span></label>
+                <input id="plName" placeholder="e.g., load_customers_daily" data-coach='{"title":"Pipeline Name","body":"A unique identifier for this pipeline. Use lowercase_with_underscores. This ID is used in logs, alerts, and generated assets like schemas and tables."}' />
+              </div>
+              <div class="col-6">
+                <label for="owner">Owner Email <span class="help-ico" data-help="#owner">?</span></label>
+                <input id="owner" placeholder="data.team@company.com" data-coach='{"title":"Owner","body":"Person or team responsible for this pipeline. Used for alerts, approvals, and on-call escalation."}' />
+              </div>
+              <div class="col-8">
+                <label for="desc">Description <span class="help-ico" data-help="#desc">?</span></label>
+                <textarea id="desc" placeholder="What does this pipeline do?" data-coach='{"title":"Description","body":"Concise summary of the pipeline's purpose, data domain, and downstream consumers. Keep it under 280 characters."}'></textarea>
+              </div>
+              <div class="col-4">
+                <label for="sched">Schedule (CRON) <span class="help-ico" data-help="#sched">?</span></label>
+                <input id="sched" placeholder="0 3 * * *" data-coach='{"title":"Schedule","body":"CRON expression for when the pipeline runs. Example: <code>0 3 * * *</code> runs daily at 03:00. Use UTC unless your orchestrator says otherwise."}' />
+                <div class="tip">Tip: Use <code>@daily</code>, <code>@hourly</code>, or a CRON string.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 2: Source schema registration -->
+          <div class="step hidden" data-step="2" data-title="Source Schema Registration">
+            <div class="grid">
+              <div class="col-4">
+                <label for="sourceSystem">Source System <span class="help-ico" data-help="#sourceSystem">?</span></label>
+                <select id="sourceSystem" data-coach='{"title":"Source System","body":"Where the data originates. Examples: app_db, salesforce, stripe, s3_raw. This helps catalog lineage and access controls."}'>
+                  <option value="">Select…</option>
+                  <option>app_db</option>
+                  <option>salesforce</option>
+                  <option>stripe</option>
+                  <option>s3_raw</option>
+                  <option>gcs_raw</option>
+                </select>
+              </div>
+              <div class="col-4">
+                <label for="sourceSchema">Source Schema <span class="help-ico" data-help="#sourceSchema">?</span></label>
+                <input id="sourceSchema" placeholder="public" data-coach='{"title":"Source Schema","body":"Logical grouping in the source system (e.g., database schema or folder)."}' />
+              </div>
+              <div class="col-4">
+                <label for="sourceTable">Source Entity/Table <span class="help-ico" data-help="#sourceTable">?</span></label>
+                <input id="sourceTable" placeholder="customers" data-coach='{"title":"Source Entity","body":"The table, topic, or file prefix to read from. For files, use a glob pattern like <code>customers/*.json</code>."}' />
+              </div>
+              <div class="col-12">
+                <div class="row" style="justify-content:space-between; align-items:center">
+                  <div>
+                    <label>Columns & Types <span class="help-ico" data-help="#colsTbl">?</span></label>
+                    <div class="tip">Define each column, its data type, nullability, and description. Types are logical (string, integer, decimal, boolean, date, timestamp, json).</div>
+                  </div>
+                  <div class="row">
+                    <button class="btn" id="addCol">+ Add Column</button>
+                    <button class="btn secondary" id="loadColsFromJson">Load from JSON sample</button>
+                  </div>
+                </div>
+                <table class="tbl" id="colsTbl" data-coach='{"title":"Schema Grid","body":"Maintain a precise contract for the incoming data. Consistent schemas enable validation, type-safe transforms, and safer deployments."}'>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Column</th>
+                      <th>Type</th>
+                      <th>Nullable</th>
+                      <th>Description</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+                <details style="margin-top:8px">
+                  <summary>Paste JSON sample to infer columns</summary>
+                  <textarea id="jsonSample" placeholder='[{"id":1,"email":"a@x.com","created_at":"2024-01-01T00:00:00Z"}]'></textarea>
+                </details>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 3: Transform rules (optional) -->
+          <div class="step hidden" data-step="3" data-title="Transform Rules (Optional)">
+            <div class="grid">
+              <div class="col-12">
+                <label for="selectCols">Select / Rename Columns <span class="help-ico" data-help="#selectCols">?</span></label>
+                <textarea id="selectCols" placeholder="id as customer_id, email, lower(country) as country"></textarea>
+                <div class="tip">Comma-separated expressions. Use SQL-ish syntax supported by your engine (e.g., Spark SQL / dbt / DuckDB).</div>
+              </div>
+              <div class="col-6">
+                <label for="filters">Row Filters <span class="help-ico" data-help="#filters">?</span></label>
+                <input id="filters" placeholder="is_active = true AND deleted_at IS NULL" />
+              </div>
+              <div class="col-6">
+                <label for="dedupeKeys">Deduplication Keys <span class="help-ico" data-help="#dedupeKeys">?</span></label>
+                <input id="dedupeKeys" placeholder="customer_id, updated_at" />
+                <div class="tip">Leave blank to skip deduplication. If provided, newest <code>updated_at</code> wins.</div>
+              </div>
+              <div class="col-12">
+                <label for="customSql">Custom SQL (advanced) <span class="help-ico" data-help="#customSql">?</span></label>
+                <textarea id="customSql" placeholder="WITH src AS (...) SELECT ..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 4: Target table registration -->
+          <div class="step hidden" data-step="4" data-title="Target Table Registration">
+            <div class="grid">
+              <div class="col-4">
+                <label for="warehouse">Warehouse <span class="help-ico" data-help="#warehouse">?</span></label>
+                <select id="warehouse" data-coach='{"title":"Warehouse","body":"The target platform for storage/processing. Options include Postgres, Snowflake, BigQuery, Redshift, or DuckDB."}'>
+                  <option>Postgres</option>
+                  <option>Snowflake</option>
+                  <option>BigQuery</option>
+                  <option>Redshift</option>
+                  <option>DuckDB</option>
+                </select>
+              </div>
+              <div class="col-4">
+                <label for="db">Database / Dataset <span class="help-ico" data-help="#db">?</span></label>
+                <input id="db" placeholder="analytics" />
+              </div>
+              <div class="col-4">
+                <label for="tgtSchema">Schema <span class="help-ico" data-help="#tgtSchema">?</span></label>
+                <input id="tgtSchema" placeholder="public" />
+              </div>
+              <div class="col-8">
+                <label for="tgtTable">Target Table <span class="help-ico" data-help="#tgtTable">?</span></label>
+                <input id="tgtTable" placeholder="dim_customers" />
+              </div>
+              <div class="col-4">
+                <label for="writeMode">Write Mode <span class="help-ico" data-help="#writeMode">?</span></label>
+                <select id="writeMode">
+                  <option>append</option>
+                  <option>overwrite</option>
+                  <option>merge_upsert</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label for="pk">Primary/Business Keys <span class="help-ico" data-help="#pk">?</span></label>
+                <input id="pk" placeholder="customer_id" />
+              </div>
+              <div class="col-6">
+                <label for="part">Partition / Clustering <span class="help-ico" data-help="#part">?</span></label>
+                <input id="part" placeholder="by_day(created_at) or PARTITION BY DATE(created_at)" />
+              </div>
+              <div class="col-12">
+                <label for="ddlExtras">DDL Options <span class="help-ico" data-help="#ddlExtras">?</span></label>
+                <textarea id="ddlExtras" placeholder="WITH (fillfactor=90)  -- or: CLUSTER BY (customer_id)"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 5: Review & Generate -->
+          <div class="step hidden" data-step="5" data-title="Review & Generate">
+            <div class="grid">
+              <div class="col-12">
+                <p class="tip">Review the generated configuration JSON and optional SQL/DDL before exporting.</p>
+              </div>
+              <div class="col-12">
+                <div class="row">
+                  <button class="btn success" id="genConfig">Generate Config JSON</button>
+                  <button class="btn" id="genDDL">Generate DDL</button>
+                  <button class="btn secondary" id="downloadConfig">Download Config</button>
+                </div>
+              </div>
+              <div class="col-12">
+                <label>Generated DDL Preview</label>
+                <pre class="code" id="ddlOut">-- Click "Generate DDL" to preview CREATE TABLE / MERGE commands here.</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot">
+          <div class="row">
+            <button class="btn secondary" id="prevBtn">← Back</button>
+          </div>
+          <div class="row">
+            <button class="btn" id="nextBtn">Next →</button>
+            <button class="btn success" id="finishBtn">Finish</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel aside">
+        <div class="hd">
+          <h2>Live Config Preview</h2>
+          <div class="row">
+            <button class="btn ghost" id="copyPreview">Copy</button>
+          </div>
+        </div>
+        <div class="body">
+          <pre class="code" id="preview">{}</pre>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Guided Tour Elements -->
+  <div class="tour-mask" id="tourMask"></div>
+  <div class="tour-highlight" id="tourHi"></div>
+  <div class="tour-pop" id="tourPop" role="dialog" aria-modal="true">
+    <h3 id="tourTitle">Coach Mark</h3>
+    <p id="tourBody">Detailed explanation appears here.</p>
+    <div class="controls">
+      <span class="idx" id="tourIdx">1/1</span>
+      <div class="row">
+        <button class="btn secondary" id="tourPrev">Back</button>
+        <button class="btn" id="tourNext">Next</button>
+        <button class="btn ghost" id="tourExit">Exit</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Utility ----------
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+
+    // Persistent state
+    const state = {
+      step: 1,
+      maxStep: 5,
+      cols: [],
+      config: {}
+    };
+
+    // ---------- Stepper UI ----------
+    function renderStepper(){
+      const el = $('#stepper');
+      el.innerHTML = '';
+      const titles = $$('#steps .step').map(x => x.dataset.title);
+      titles.forEach((t,i)=>{
+        const n = i+1;
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.dataset.active = (state.step===n);
+        chip.dataset.complete = (state.step>n);
+        chip.innerHTML = `<span class="dot"></span><span>${n}. ${t}</span>`;
+        chip.addEventListener('click', ()=> gotoStep(n));
+        el.appendChild(chip);
+      });
+    }
+
+    function gotoStep(n){
+      if(n<1||n>state.maxStep) return;
+      state.step = n;
+      $$('#steps .step').forEach((s,i)=> s.classList.toggle('hidden', i!==n-1));
+      renderStepper();
+      scrollTo({top:0, behavior:'smooth'});
+    }
+
+    // ---------- Columns grid ----------
+    function renderCols(){
+      const tbody = $('#colsTbl tbody');
+      tbody.innerHTML = '';
+      state.cols.forEach((c,idx)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td><input value="${c.name||''}" data-k="name" /></td>
+          <td>
+            <select data-k="type">
+              ${['string','integer','bigint','decimal','boolean','date','timestamp','json'].map(t=>`<option ${c.type===t?'selected':''}>${t}</option>`).join('')}
+            </select>
+          </td>
+          <td style="text-align:center"><input type="checkbox" data-k="nullable" ${c.nullable? 'checked':''} /></td>
+          <td><input value="${c.desc||''}" data-k="desc" /></td>
+          <td style="text-align:right"><button class="btn danger" data-del="${idx}">Delete</button></td>`;
+        tbody.appendChild(tr);
+      });
+      // Wire inputs
+      tbody.querySelectorAll('input,select,button').forEach(el=>{
+        if(el.dataset.del){
+          el.addEventListener('click', ()=>{
+            state.cols.splice(parseInt(el.dataset.del,10),1);
+            renderCols(); updateConfig();
+          });
+        } else {
+          el.addEventListener('input', ()=>{
+            const tr = el.closest('tr');
+            const i = Array.from(tr.parentNode.children).indexOf(tr);
+            const k = el.dataset.k;
+            let v = (el.type==='checkbox') ? el.checked : el.value;
+            state.cols[i][k] = v; updateConfig();
+          });
+        }
+      });
+    }
+
+    $('#addCol').addEventListener('click', ()=>{
+      state.cols.push({name:'', type:'string', nullable:true, desc:''});
+      renderCols(); updateConfig();
+    });
+
+    $('#loadColsFromJson').addEventListener('click', ()=>{
+      try{
+        const text = $('#jsonSample').value.trim();
+        if(!text){ alert('Paste a JSON array sample first.'); return; }
+        const arr = JSON.parse(text);
+        const obj = Array.isArray(arr) ? arr[0] : arr;
+        const infer = (v)=>{
+          if(v===null) return 'string';
+          if(Array.isArray(v) || typeof v==='object') return 'json';
+          if(typeof v==='number') return Number.isInteger(v) ? 'integer' : 'decimal';
+          if(typeof v==='boolean') return 'boolean';
+          if(typeof v==='string' && /T\d{2}:\d{2}:\d{2}/.test(v)) return 'timestamp';
+          if(typeof v==='string' && /\d{4}-\d{2}-\d{2}$/.test(v)) return 'date';
+          return 'string';
+        };
+        state.cols = Object.entries(obj).map(([k,v])=>({name:k, type:infer(v), nullable:true, desc:''}));
+        renderCols(); updateConfig();
+      }catch(e){ alert('Invalid JSON sample.'); }
+    });
+
+    // ---------- Gather & preview config ----------
+    function gather(){
+      return {
+        pipeline: {
+          name: $('#plName').value.trim(),
+          description: $('#desc').value.trim(),
+          owner: $('#owner').value.trim(),
+          schedule: $('#sched').value.trim()
+        },
+        source: {
+          system: $('#sourceSystem').value.trim(),
+          schema: $('#sourceSchema').value.trim(),
+          entity: $('#sourceTable').value.trim(),
+          columns: state.cols.map(c=>({name:c.name, type:c.type, nullable: !!c.nullable, description: c.desc}))
+        },
+        transform: {
+          select: $('#selectCols').value.trim(),
+          filters: $('#filters').value.trim(),
+          dedupe_keys: $('#dedupeKeys').value.trim(),
+          sql: $('#customSql').value.trim()
+        },
+        target: {
+          warehouse: $('#warehouse').value,
+          database: $('#db').value.trim(),
+          schema: $('#tgtSchema').value.trim(),
+          table: $('#tgtTable').value.trim(),
+          write_mode: $('#writeMode').value,
+          keys: $('#pk').value.trim(),
+          partition: $('#part').value.trim(),
+          ddl_options: $('#ddlExtras').value.trim()
+        },
+        metadata: {
+          created_at: new Date().toISOString()
+        }
+      };
+    }
+
+    function updateConfig(){
+      state.config = gather();
+      $('#preview').textContent = JSON.stringify(state.config, null, 2);
+    }
+
+    $$('#builder input, #builder select, #builder textarea').forEach(el=> el.addEventListener('input', updateConfig));
+
+    // ---------- Navigation ----------
+    $('#prevBtn').addEventListener('click', ()=> gotoStep(Math.max(1, state.step-1)));
+    $('#nextBtn').addEventListener('click', ()=> gotoStep(Math.min(state.maxStep, state.step+1)));
+    $('#finishBtn').addEventListener('click', ()=>{ gotoStep(5); updateConfig(); alert('Review your configuration on the right. Use Download Config to save it.'); });
+    $('#resetBtn').addEventListener('click', ()=>{ if(confirm('Clear all fields and start over?')) location.reload(); });
+
+    // ---------- DDL generation (simple, Postgres-ish) ----------
+    function pgType(t){
+      const map = { string: 'text', integer:'integer', bigint:'bigint', decimal:'numeric', boolean:'boolean', date:'date', timestamp:'timestamp', json:'jsonb' };
+      return map[t] || 'text';
+    }
+    function genDDL(){
+      const cfg = state.config;
+      if(!cfg?.target?.table){ alert('Please fill target table.'); return '-- missing target table --'; }
+      const fq = [cfg.target.database, cfg.target.schema, cfg.target.table].filter(Boolean).join('.');
+      const cols = (cfg.source.columns||[]).map(c=>`  ${c.name} ${pgType(c.type)} ${c.nullable?'':'NOT NULL'}${c.description?` -- ${c.description.replace(/\n/g,' ')}`:''}`).join('\n');
+      const pk = cfg.target.keys ? `,\n  PRIMARY KEY (${cfg.target.keys})` : '';
+      const extras = cfg.target.ddl_options ? `\n${cfg.target.ddl_options}` : '';
+      const create = `CREATE TABLE IF NOT EXISTS ${fq} (\n${cols}${pk}\n);${extras}`;
+
+      let write = '-- write strategy: ' + cfg.target.write_mode + '\n';
+      if(cfg.target.write_mode==='merge_upsert' && cfg.target.keys){
+        write += `-- Example MERGE (pseudo):\n-- MERGE INTO ${fq} t USING staging s ON (${cfg.target.keys.split(',').map(k=>`t.${k.trim()}=s.${k.trim()}`).join(' AND ')})\n-- WHEN MATCHED THEN UPDATE SET ...\n-- WHEN NOT MATCHED THEN INSERT (...) VALUES (...);`;
+      } else if(cfg.target.write_mode==='overwrite'){
+        write += `TRUNCATE ${fq};\n-- then INSERT SELECT ...`;
+      } else {
+        write += `-- INSERT INTO ${fq} SELECT ...`;
+      }
+
+      return create + '\n\n' + write;
+    }
+
+    $('#genDDL').addEventListener('click', ()=>{ updateConfig(); $('#ddlOut').textContent = genDDL(); });
+    $('#genConfig').addEventListener('click', updateConfig);
+    $('#downloadConfig').addEventListener('click', ()=>{
+      updateConfig();
+      const blob = new Blob([JSON.stringify(state.config, null, 2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${state.config.pipeline?.name || 'pipeline'}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+    $('#copyPreview').addEventListener('click', ()=>{ navigator.clipboard.writeText($('#preview').textContent).then(()=>{alert('Config copied!');}); });
+
+    // ---------- Coach marks / Guided tour ----------
+    const Tour = (()=>{
+      let items = []; let idx = 0; let running=false;
+      const mask = $('#tourMask'); const pop = $('#tourPop'); const hi = $('#tourHi');
+      const T = {};
+      function collectInStep(stepN){
+        const stepEl = $(`#steps .step[data-step="${stepN}"]`);
+        return Array.from(stepEl.querySelectorAll('[data-coach]'));
+      }
+      function rectWithPadding(el, pad=8){
+        const r = el.getBoundingClientRect();
+        return {left:r.left-pad, top:r.top-pad, width:r.width+pad*2, height:r.height+pad*2};
+      }
+      function placePopAround(el){
+        const r = el.getBoundingClientRect();
+        const w = 420; const h = 180; // approx
+        let x = r.right + 12; let y = r.top; // default right side
+        if(x + w > innerWidth - 12) x = r.left - w - 12; // move left
+        if(x < 12) x = 12;
+        if(y + h > innerHeight - 12) y = innerHeight - h - 12;
+        if(y < 12) y = 12;
+        pop.style.left = x + 'px';
+        pop.style.top = y + 'px';
+      }
+      function show(){ mask.style.display='block'; pop.style.display='block'; hi.style.display='block'; }
+      function hide(){ mask.style.display='none'; pop.style.display='none'; hi.style.display='none'; running=false; }
+      function step(i){
+        idx = i;
+        const el = items[idx]; if(!el){ hide(); return; }
+        const data = JSON.parse(el.dataset.coach);
+        $('#tourTitle').innerHTML = data.title || 'Coach Mark';
+        $('#tourBody').innerHTML = data.body || '';
+        $('#tourIdx').textContent = `${idx+1}/${items.length}`;
+        const r = rectWithPadding(el);
+        hi.style.left = r.left + 'px';
+        hi.style.top = r.top + 'px';
+        hi.style.width = r.width + 'px';
+        hi.style.height = r.height + 'px';
+        placePopAround(el);
+        show();
+      }
+      T.startStep = (stepN)=>{ items = collectInStep(stepN); if(items.length===0){ alert('No coach marks in this step.'); return;} running=true; step(0); };
+      T.startAll = ()=>{ items = $$('#steps [data-coach]'); if(items.length===0){ alert('No coach marks found.'); return;} running=true; step(0); };
+      T.next = ()=> step(Math.min(items.length, idx+1));
+      T.prev = ()=> step(Math.max(0, idx-1));
+      T.exit = hide;
+      // close on ESC or mask click
+      document.addEventListener('keydown', e=>{ if(e.key==='Escape' && running) hide(); if(e.key==='ArrowRight'&&running) T.next(); if(e.key==='ArrowLeft'&&running) T.prev(); });
+      mask.addEventListener('click', hide);
+      $('#tourNext').addEventListener('click', T.next);
+      $('#tourPrev').addEventListener('click', T.prev);
+      $('#tourExit').addEventListener('click', T.exit);
+      return T;
+    })();
+
+    $('#tourStep').addEventListener('click', ()=> Tour.startStep(state.step));
+    $('#startTourAll').addEventListener('click', ()=> Tour.startAll());
+
+    // help-ico click triggers single coach pop
+    $$('#builder .help-ico').forEach(h=>{
+      h.addEventListener('click', (e)=>{
+        const targetSel = h.dataset.help; const target = document.querySelector(targetSel) || h.closest('label');
+        if(!target) return;
+        const fake = document.createElement('div');
+        fake.dataset.coach = target.dataset.coach || JSON.stringify({title:'Help', body: 'No help available.'});
+        target.parentNode.appendChild(fake);
+        const rect = target.getBoundingClientRect();
+        fake.getBoundingClientRect = ()=> rect; // spoof rect so tour can highlight correctly
+        const restore = ()=> fake.remove();
+        const {startAll, startStep} = Tour; // not used; just to keep closure happy
+        const mask = $('#tourMask');
+        const hi = $('#tourHi');
+        const pop = $('#tourPop');
+        // Mini one-off
+        const data = JSON.parse(fake.dataset.coach);
+        $('#tourTitle').innerHTML = data.title || 'Help';
+        $('#tourBody').innerHTML = data.body || '';
+        $('#tourIdx').textContent = `•`;
+        hi.style.left = rect.left-8 + 'px';
+        hi.style.top = rect.top-8 + 'px';
+        hi.style.width = rect.width+16 + 'px';
+        hi.style.height = rect.height+16 + 'px';
+        pop.style.left = (rect.right + 12) + 'px';
+        pop.style.top = rect.top + 'px';
+        mask.style.display='block'; pop.style.display='block'; hi.style.display='block';
+        const exit = ()=>{ mask.style.display='none'; pop.style.display='none'; hi.style.display='none'; restore(); }
+        $('#tourExit').onclick = exit; $('#tourNext').onclick = exit; $('#tourPrev').onclick = exit; mask.onclick = exit;
+      });
+    });
+
+    // Initialize
+    renderStepper();
+    updateConfig();
+  </script>
+</body>
+</html>
