@@ -67,7 +67,38 @@ This checklist maps **capabilities → infra needs** in a tick-box format for ea
 
 ---
 
-## 3. Palantir Foundry + AIP
+## 3. AWS – Option 3 (UI & Execution On-Prem, AWS only for Text-to-SQL)
+
+- [ ] **Text-to-SQL (AI)**
+  - [ ] Enable Amazon Bedrock API (Claude, Llama3, Titan)
+  - [ ] Allow only schema/data dictionary metadata to be passed (no raw data)
+  - [ ] Configure IAM roles for secure API usage
+
+- [ ] **Execution**
+  - [ ] Hive On-Prem → Run queries natively via HiveServer2
+  - [ ] Snowflake (if hybrid setup) → Connect directly from on-prem UI using Snowflake JDBC/ODBC
+  - [ ] No execution workloads run in AWS
+
+- [ ] **Data Quality Engine**
+  - [ ] On Hive → Enable Great Expectations or Spark SQL validation on-prem
+  - [ ] On Snowflake → Execute directly using Snowflake SQL scripts (no Glue dependency)
+
+- [ ] **Results Storage**
+  - [ ] On-Prem DB or Hive tables for results
+  - [ ] Snowflake tables for hybrid results (optional)
+
+- [ ] **Visualization**
+  - [ ] On-Prem → Grafana, Superset, or custom UI dashboards
+  - [ ] Cloud visualization not required unless Snowflake is used
+
+- [ ] **Networking**
+  - [ ] Outbound connectivity from on-prem UI to AWS Bedrock endpoint
+  - [ ] No inbound AWS connectivity required
+  - [ ] Lightweight IAM/API key management for Bedrock
+
+---
+
+## 4. Palantir Foundry + AIP
 
 - [ ] **Text-to-SQL (AI)**
   - [ ] Enable Palantir AIP with Ontology/Schema mapping
@@ -100,4 +131,5 @@ This checklist maps **capabilities → infra needs** in a tick-box format for ea
 ### 🔑 Key Notes
 - **AWS Option 1 (Hybrid)** → Focus on connectivity (Hive + Snowflake), Bedrock API, Glue DQ, secure result storage.  
 - **AWS Option 2 (Full Cloud)** → Focus on Glue, Bedrock/SageMaker, QuickSight, Snowflake compute.  
+- **AWS Option 3 (On-Prem + AI Assist)** → Only Bedrock used for SQL generation; execution + results stay fully on-prem (Hive/Snowflake).  
 - **Palantir** → Requires AIP + Snowflake integration; on-prem execution/storage not supported except via export.  
