@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Data Profiling · Deequ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root{
+    --bg:#eef1f6;
+    --surface:#ffffff;
+    --surface-alt:#f7f9fc;
+    --surface-sunken:#f2f5f9;
+    --border:#e5e9f0;
+    --border-strong:#d7dee8;
+    --text-primary:#0f172a;
+    --text-secondary:#5b6a82;
+    --text-tertiary:#94a3b8;
+    --blue:#2563eb;
+    --blue-dark:#1d4ed8;
+    --blue-light:#eaf1ff;
+    --blue-pale:#f5f9ff;
+    --success:#16a34a;
+    --success-light:#eafaf0;
+    --warning:#d97706;
+    --warning-light:#fff8ea;
+    --danger:#dc2626;
+    --danger-light:#fef1f1;
+    --radius-lg:1.75rem;
+    --radius-md:1.1rem;
+    --radius-sm:0.7rem;
+    --shadow-card:0 1px 2px rgba(15,23,42,.04), 0 12px 32px -18px rgba(15,23,42,.12);
+    --shadow-pop:0 20px 45px -15px rgba(15,23,42,.22);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:
+      radial-gradient(1100px 480px at 12% -10%, #dbe6fb 0%, transparent 55%),
+      var(--bg);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    color:var(--text-primary);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:2.5rem 1.5rem 4rem;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--blue-light); color:var(--blue-dark);}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
+  button{font-family:inherit;}
+
+  .app{max-width:1480px; width:100%; display:flex; flex-direction:column; gap:1.5rem;}
+
+  /* ---------- Header ---------- */
+  .header{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;
+  }
+  .header-left{display:flex; align-items:center; gap:1rem;}
+  .header-icon{
+    width:3.1rem; height:3.1rem; border-radius:1.05rem; background:linear-gradient(155deg,#2563eb,#1d4ed8);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.3rem;
+    box-shadow:0 10px 24px -8px rgba(37,99,235,.55);
+  }
+  .header-titles h1{
+    font-family:'Manrope',sans-serif; font-weight:800; font-size:1.7rem; letter-spacing:-0.03em; color:var(--text-primary);
+  }
+  .header-titles p{font-size:.88rem; color:var(--text-secondary); margin-top:.15rem;}
+  .header-right{display:flex; align-items:center; gap:.6rem;}
+  .badge{
+    background:var(--surface); border:1px solid var(--border-strong); color:var(--text-secondary);
+    font-size:.78rem; font-weight:600; padding:.5rem .95rem; border-radius:2rem; display:flex; align-items:center; gap:.4rem;
+    box-shadow:var(--shadow-card);
+  }
+  .badge i{color:var(--blue);}
+
+  /* ---------- Mode switch ---------- */
+  .mode-row{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;}
+  .mode-switch{display:flex; gap:.25rem; background:var(--surface-sunken); padding:.3rem; border-radius:2rem; border:1px solid var(--border); width:fit-content;}
+  .mode-btn{
+    border:none; background:none; padding:.6rem 1.3rem; border-radius:1.6rem; font-weight:700; font-size:.85rem;
+    color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:.55rem; transition:.15s;
+  }
+  .mode-btn .mode-dot{width:.4rem; height:.4rem; border-radius:50%; background:var(--text-tertiary);}
+  .mode-btn.active{background:var(--surface); color:var(--blue-dark); box-shadow:var(--shadow-card);}
+  .mode-btn.active .mode-dot{background:var(--blue);}
+  .mode-hint{font-size:.8rem; color:var(--text-secondary); display:flex; align-items:center; gap:.4rem;}
+  .mode-hint i{color:var(--blue);}
+
+  /* ---------- Overview strip ---------- */
+  .overview{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1rem;
+  }
+  @media (max-width:900px){ .overview{grid-template-columns:repeat(2,1fr);} }
+  .overview-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md);
+    padding:1.1rem 1.3rem; box-shadow:var(--shadow-card); display:flex; flex-direction:column; gap:.3rem;
+  }
+  .overview-card .ov-label{font-size:.76rem; font-weight:600; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.05em;}
+  .overview-card .ov-value{font-family:'Manrope',sans-serif; font-weight:800; font-size:1.6rem; color:var(--text-primary);}
+  .overview-card .ov-sub{font-size:.78rem; color:var(--text-secondary);}
+
+  /* ---------- Panels ---------- */
+  .panel{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-card);
+  }
+  .panel-pad{padding:1.5rem 1.6rem;}
+  .panel-head{display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.1rem; flex-wrap:wrap;}
+  .panel-head .ph-title{display:flex; align-items:center; gap:.55rem; font-family:'Manrope',sans-serif; font-weight:700; font-size:1.02rem;}
+  .panel-head .ph-title i{color:var(--blue);}
+  .panel-head .ph-sub{font-size:.8rem; color:var(--text-secondary); margin-top:.15rem; font-weight:400; font-family:'Inter',sans-serif;}
+
+  /* ---------- Config bar (columns + dates) ---------- */
+  .config-grid{display:grid; grid-template-columns:1.4fr 1fr; gap:1.2rem;}
+  @media (max-width:900px){ .config-grid{grid-template-columns:1fr;} }
+  .field-label{font-size:.78rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.05em; display:flex; align-items:center; gap:.4rem; margin-bottom:.6rem;}
+  .field-label i{color:var(--blue); font-size:.85rem;}
+
+  .chips-field{
+    background:var(--surface-alt); border:1px solid var(--border); border-radius:var(--radius-md);
+    padding:.7rem .8rem; display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; min-height:52px;
+    max-height:130px; overflow-y:auto;
+  }
+  .chips-field::-webkit-scrollbar{width:6px;}
+  .chips-field::-webkit-scrollbar-thumb{background:var(--border-strong); border-radius:3px;}
+  .chip{
+    background:var(--blue-light); color:var(--blue-dark); border-radius:1.6rem; padding:.4rem .5rem .4rem .85rem;
+    font-size:.83rem; font-weight:600; display:flex; align-items:center; gap:.5rem; font-family:'JetBrains Mono',monospace;
+  }
+  .chip .type-dot{width:.4rem; height:.4rem; border-radius:50%; background:var(--blue);}
+  .chip i.remove{cursor:pointer; color:#7c93c9; font-size:.72rem; width:1.1rem; height:1.1rem; display:flex; align-items:center; justify-content:center; border-radius:50%; font-family:'Font Awesome 6 Free';}
+  .chip i.remove:hover{background:#fff; color:var(--danger);}
+  .chip-empty{color:var(--text-tertiary); font-size:.85rem; font-family:'Inter',sans-serif;}
+
+  .field-actions{display:flex; gap:.6rem; margin-top:.65rem; position:relative; flex-wrap:wrap;}
+  .btn-ghost{
+    background:var(--surface); border:1px solid var(--border-strong); color:var(--text-primary);
+    border-radius:1.6rem; padding:.42rem 1rem; font-size:.8rem; font-weight:600; cursor:pointer;
+    display:flex; align-items:center; gap:.4rem; transition:.15s;
+  }
+  .btn-ghost:hover{border-color:var(--blue); color:var(--blue-dark); background:var(--blue-pale);}
+  .btn-text{background:none; border:none; color:var(--text-secondary); font-size:.8rem; font-weight:600; cursor:pointer; padding:.42rem .3rem;}
+  .btn-text:hover{color:var(--blue-dark);}
+
+  .col-dropdown{
+    position:absolute; top:calc(100% + .4rem); left:0; background:var(--surface); border-radius:var(--radius-sm);
+    box-shadow:var(--shadow-pop); border:1px solid var(--border); width:250px; padding:.4rem; z-index:30; display:none;
+  }
+  .col-dropdown.active{display:block;}
+  .col-search{
+    width:100%; border:1px solid var(--border-strong); border-radius:.6rem; padding:.45rem .65rem; font-size:.8rem;
+    margin-bottom:.35rem; font-family:'Inter',sans-serif; background:var(--surface-alt);
+  }
+  .col-option-list{max-height:220px; overflow-y:auto;}
+  .col-option-list::-webkit-scrollbar{width:5px;}
+  .col-option-list::-webkit-scrollbar-thumb{background:var(--border-strong); border-radius:3px;}
+  .col-option{
+    padding:.55rem .7rem; border-radius:.6rem; display:flex; align-items:center; justify-content:space-between; gap:.5rem;
+    cursor:pointer; font-size:.85rem; font-weight:600;
+  }
+  .col-option:hover{background:var(--blue-pale);}
+  .col-option .col-type{font-size:.7rem; font-weight:600; color:var(--text-tertiary); text-transform:uppercase;}
+  .col-dropdown-empty{padding:.6rem .7rem; font-size:.8rem; color:var(--text-tertiary);}
+
+  .date-field{
+    background:var(--surface-alt); border:1px solid var(--border); border-radius:var(--radius-md);
+    padding:.65rem .9rem; display:flex; align-items:center; gap:.7rem; flex-wrap:wrap;
+  }
+  .date-input{
+    border:1px solid var(--border-strong); border-radius:.7rem; padding:.5rem .7rem; background:var(--surface);
+    font-family:'JetBrains Mono',monospace; font-size:.82rem; color:var(--text-primary);
+  }
+  .date-arrow{color:var(--text-tertiary);}
+  .limit-pill{
+    margin-left:auto; background:var(--surface); border:1px solid var(--border-strong); border-radius:2rem;
+    padding:.4rem .9rem; font-size:.76rem; font-weight:600; color:var(--text-secondary); display:flex; align-items:center; gap:.4rem;
+  }
+
+  /* ---------- Metrics ---------- */
+  .metric-categories{display:flex; flex-direction:column; gap:1rem;}
+  .metric-category{border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;}
+  .cat-head{
+    background:var(--surface-alt); padding:.85rem 1.1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  }
+  .cat-head-left{display:flex; align-items:center; gap:.65rem;}
+  .cat-icon{
+    width:2.1rem; height:2.1rem; border-radius:.7rem; background:var(--blue-light); color:var(--blue-dark);
+    display:flex; align-items:center; justify-content:center; font-size:.9rem;
+  }
+  .cat-name{font-weight:700; font-size:.9rem;}
+  .cat-desc{font-size:.76rem; color:var(--text-secondary); margin-top:.1rem;}
+  .cat-toggle{font-size:.75rem; font-weight:600; color:var(--blue); background:none; border:none; cursor:pointer;}
+
+  .metrics-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:.7rem; padding:1rem;}
+  .metric-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:.8rem .9rem; cursor:pointer; transition:.15s; position:relative; display:flex; flex-direction:column; gap:.35rem;
+  }
+  .metric-card:hover{border-color:var(--blue); box-shadow:0 8px 20px -12px rgba(37,99,235,.35);}
+  .metric-card.selected{background:var(--blue-pale); border-color:var(--blue);}
+  .metric-row{display:flex; align-items:center; justify-content:space-between; gap:.5rem;}
+  .metric-name{font-weight:700; font-size:.86rem;}
+  .metric-check{
+    width:1.15rem; height:1.15rem; border-radius:.35rem; border:1.5px solid var(--border-strong); background:var(--surface);
+    display:flex; align-items:center; justify-content:center; font-size:.65rem; color:transparent; flex-shrink:0;
+  }
+  .metric-card.selected .metric-check{background:var(--blue); border-color:var(--blue); color:#fff;}
+  .metric-desc{font-size:.74rem; color:var(--text-secondary); line-height:1.35;}
+  .metric-info{
+    position:absolute; top:.7rem; right:.65rem; color:var(--text-tertiary); font-size:.78rem; cursor:help;
+  }
+  .metric-card.selected .metric-info{display:none;}
+  .tooltip-desc{
+    background:var(--text-primary); color:#f1f5f9; border-radius:.7rem; padding:.65rem .8rem;
+    box-shadow:var(--shadow-pop); font-size:.76rem; line-height:1.4; max-width:230px; position:fixed; z-index:60; display:none;
+  }
+  .tooltip-desc strong{color:#fff;}
+  .tooltip-desc em{color:#93c5fd; font-style:normal; display:block; margin-top:.3rem;}
+
+  /* ---------- Action bar ---------- */
+  .action-bar{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.1rem 1.4rem;
+    box-shadow:var(--shadow-card); position:sticky; bottom:1rem; z-index:10;
+  }
+  .selection-summary{display:flex; align-items:center; gap:1.2rem; font-size:.84rem; color:var(--text-secondary); flex-wrap:wrap;}
+  .selection-summary strong{color:var(--text-primary); font-family:'JetBrains Mono',monospace;}
+  .batch-note{font-size:.76rem; color:var(--text-tertiary); display:flex; align-items:center; gap:.4rem;}
+  .run-button{
+    background:linear-gradient(155deg,#2563eb,#1d4ed8); border:none; color:#fff; font-weight:700; font-size:.9rem;
+    padding:.85rem 1.8rem; border-radius:2.5rem; display:flex; align-items:center; gap:.6rem; cursor:pointer;
+    box-shadow:0 14px 28px -10px rgba(37,99,235,.6); transition:.15s;
+  }
+  .run-button:hover{transform:translateY(-1px); box-shadow:0 18px 32px -10px rgba(37,99,235,.7);}
+  .run-button:active{transform:translateY(0);}
+  .run-button:disabled{background:var(--border-strong); color:var(--text-tertiary); box-shadow:none; cursor:not-allowed; transform:none;}
+
+  /* ---------- Main layout ---------- */
+  .main-layout{display:grid; grid-template-columns:1fr 340px; gap:1.4rem;}
+  @media (max-width:980px){ .main-layout{grid-template-columns:1fr;} }
+
+  .run-meta{font-size:.78rem; color:var(--text-secondary); margin-bottom:1rem; display:flex; gap:1rem; flex-wrap:wrap;}
+  .run-meta span{display:flex; align-items:center; gap:.35rem;}
+  .run-meta i{color:var(--blue);}
+
+  .help-strip{
+    display:flex; align-items:center; gap:.55rem; background:var(--blue-pale); border:1px solid var(--blue-light);
+    color:var(--blue-dark); font-size:.78rem; font-weight:500; border-radius:.9rem; padding:.65rem .9rem; margin-bottom:1.1rem;
+  }
+  .help-strip i{color:var(--blue);}
+
+  .col-result{
+    background:var(--surface-alt); border:1px solid var(--border); border-radius:var(--radius-md); padding:1.1rem 1.2rem; margin-bottom:1rem;
+  }
+  .col-result-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:.9rem;}
+  .col-result-title{display:flex; align-items:center; gap:.55rem; font-weight:700; font-size:.92rem; font-family:'JetBrains Mono',monospace;}
+  .col-type-tag{
+    font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:.2rem .55rem; border-radius:.5rem;
+  }
+  .col-type-tag.numeric{background:var(--blue-light); color:var(--blue-dark);}
+  .col-type-tag.categorical{background:#f3e8ff; color:#7e22ce;}
+
+  .metric-results{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.7rem;}
+  .result-tile{
+    background:var(--surface); border:1px solid var(--border); border-radius:.8rem; padding:.75rem .85rem;
+    display:flex; flex-direction:column; gap:.45rem; position:relative;
+  }
+  .result-tile .rt-label{font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text-tertiary); padding-right:1rem;}
+  .result-tile .rt-value{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:1.1rem; color:var(--text-primary);}
+  .result-tile .rt-value.na{color:var(--text-tertiary); font-weight:500; font-size:.85rem;}
+  .result-tile .rt-note{font-size:.7rem; color:var(--text-secondary); line-height:1.3;}
+  .result-tile .rt-info{position:absolute; top:.7rem; right:.6rem; font-size:.72rem; color:var(--text-tertiary); cursor:help;}
+  .result-tile .rt-info:hover{color:var(--blue);}
+
+  .ring-tile{flex-direction:row; align-items:center; gap:.7rem;}
+  .ring{
+    --pct:0; width:2.9rem; height:2.9rem; border-radius:50%; flex-shrink:0;
+    background:conic-gradient(var(--ring-color,#2563eb) calc(var(--pct)*1%), var(--surface-sunken) 0);
+    display:flex; align-items:center; justify-content:center; position:relative;
+  }
+  .ring::before{content:''; position:absolute; inset:4px; border-radius:50%; background:var(--surface);}
+  .ring span{position:relative; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:.68rem; z-index:1;}
+  .status-dot{width:.5rem; height:.5rem; border-radius:50%; display:inline-block; margin-right:.3rem;}
+  .status-dot.good{background:var(--success);}
+  .status-dot.warn{background:var(--warning);}
+  .status-dot.bad{background:var(--danger);}
+
+  .empty-state{text-align:center; padding:3rem 1rem; color:var(--text-tertiary);}
+  .empty-state i{font-size:1.8rem; margin-bottom:.7rem; color:var(--border-strong);}
+  .empty-state p{font-size:.85rem;}
+
+  .job-status-card{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.6rem; text-align:center;
+    background:var(--surface-alt); border:1px dashed var(--border-strong); border-radius:var(--radius-md); padding:2.4rem 1.5rem;
+  }
+  .job-status-card .jsc-icon{font-size:1.7rem; color:var(--warning);}
+  .job-status-card.running .jsc-icon{color:var(--blue);}
+  .job-status-card .jsc-title{font-weight:700; font-size:.95rem;}
+  .job-status-card .jsc-sub{font-size:.8rem; color:var(--text-secondary); max-width:360px;}
+  .spin{animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- History ---------- */
+  .history-list{display:flex; flex-direction:column; gap:.65rem; max-height:560px; overflow-y:auto; padding-right:.2rem;}
+  .history-list::-webkit-scrollbar{width:6px;}
+  .history-list::-webkit-scrollbar-thumb{background:var(--border-strong); border-radius:3px;}
+  .history-item{
+    background:var(--surface-alt); border:1px solid var(--border); border-left:3px solid var(--blue);
+    border-radius:.9rem; padding:.85rem .95rem; cursor:pointer; transition:.15s;
+  }
+  .history-item:hover{background:var(--blue-pale); border-color:var(--blue);}
+  .history-item.active{background:var(--blue-pale); border-color:var(--blue); box-shadow:0 0 0 1px var(--blue) inset;}
+  .history-item.queued{border-left-color:var(--warning);}
+  .history-item.running{border-left-color:var(--blue);}
+  .history-top{display:flex; align-items:center; justify-content:space-between; gap:.5rem;}
+  .history-time{font-weight:700; font-size:.82rem; font-family:'JetBrains Mono',monospace;}
+  .history-meta{font-size:.72rem; color:var(--text-secondary); display:flex; gap:.8rem; margin-top:.4rem; flex-wrap:wrap;}
+  .history-meta span{display:flex; align-items:center; gap:.3rem;}
+
+  .status-badge{font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:.22rem .55rem; border-radius:.5rem; display:inline-flex; align-items:center; gap:.35rem;}
+  .status-badge.completed{background:var(--success-light); color:var(--success);}
+  .status-badge.queued{background:var(--warning-light); color:var(--warning);}
+  .status-badge.running{background:var(--blue-light); color:var(--blue-dark);}
+  .status-badge .pulse{width:.4rem; height:.4rem; border-radius:50%; background:currentColor; animation:pulse 1.1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.25;}}
+
+  .quality-legend{display:flex; align-items:center; gap:1rem; font-size:.72rem; color:var(--text-secondary); margin-top:.9rem; flex-wrap:wrap;}
+  .quality-legend span{display:flex; align-items:center; gap:.35rem;}
+
+  /* ---------- Auto mode panel ---------- */
+  .auto-hero{
+    display:flex; align-items:center; justify-content:space-between; gap:1.2rem; flex-wrap:wrap;
+    background:var(--surface-alt); border:1px solid var(--border); border-radius:var(--radius-md); padding:1.2rem 1.4rem;
+  }
+  .auto-hero-left{display:flex; align-items:center; gap:1rem;}
+  .auto-hero-icon{
+    width:2.8rem; height:2.8rem; border-radius:1rem; background:var(--blue-light); color:var(--blue-dark);
+    display:flex; align-items:center; justify-content:center; font-size:1.15rem; flex-shrink:0;
+  }
+  .auto-hero-title{font-weight:700; font-size:.98rem;}
+  .auto-hero-sub{font-size:.8rem; color:var(--text-secondary); margin-top:.15rem;}
+  .toggle-row{display:flex; align-items:center; gap:.65rem;}
+  .toggle-row .toggle-label{font-size:.78rem; font-weight:600; color:var(--text-secondary);}
+  .toggle-switch{width:2.5rem; height:1.45rem; border-radius:2rem; background:var(--border-strong); position:relative; cursor:pointer; transition:.2s; flex-shrink:0;}
+  .toggle-switch.on{background:var(--blue);}
+  .toggle-switch::after{content:''; position:absolute; top:2px; left:2px; width:1.05rem; height:1.05rem; border-radius:50%; background:#fff; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,.25);}
+  .toggle-switch.on::after{left:calc(100% - 1.2rem);}
+
+  .auto-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:.9rem;}
+  @media (max-width:700px){ .auto-stats{grid-template-columns:1fr;} }
+  .auto-stat{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem 1.15rem;}
+  .auto-stat .as-label{font-size:.74rem; font-weight:700; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.05em; display:flex; align-items:center; gap:.4rem;}
+  .auto-stat .as-label i{color:var(--blue);}
+  .auto-stat .as-value{font-family:'Manrope',sans-serif; font-weight:800; font-size:1.15rem; margin-top:.4rem;}
+  .auto-stat .as-sub{font-size:.76rem; color:var(--text-secondary); margin-top:.2rem;}
+
+  .coverage-note{
+    display:flex; align-items:center; gap:.5rem; font-size:.8rem; color:var(--text-secondary);
+    background:var(--surface); border:1px solid var(--border); border-radius:.9rem; padding:.7rem .95rem;
+  }
+  .coverage-note i{color:var(--blue);}
+
+  /* ---------- Results table (scales to many columns) ---------- */
+  .results-toolbar{display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; margin-bottom:1rem;}
+  .results-search{
+    position:relative; flex:1; min-width:200px;
+  }
+  .results-search i{position:absolute; left:.8rem; top:50%; transform:translateY(-50%); color:var(--text-tertiary); font-size:.8rem;}
+  .results-search input{
+    width:100%; border:1px solid var(--border-strong); border-radius:2rem; padding:.55rem 1rem .55rem 2.1rem;
+    font-size:.83rem; background:var(--surface-alt); font-family:'Inter',sans-serif;
+  }
+  .status-filters{display:flex; gap:.4rem;}
+  .status-filter-btn{
+    border:1px solid var(--border-strong); background:var(--surface); color:var(--text-secondary); font-size:.76rem; font-weight:600;
+    padding:.45rem .85rem; border-radius:1.6rem; cursor:pointer; display:flex; align-items:center; gap:.35rem; transition:.15s;
+  }
+  .status-filter-btn:hover{border-color:var(--blue);}
+  .status-filter-btn.active{background:var(--text-primary); color:#fff; border-color:var(--text-primary);}
+  .sort-select{
+    border:1px solid var(--border-strong); border-radius:1.6rem; padding:.5rem .9rem; font-size:.78rem; font-weight:600;
+    background:var(--surface); color:var(--text-primary); cursor:pointer;
+  }
+  .results-count{font-size:.78rem; color:var(--text-tertiary); margin-bottom:.7rem;}
+
+  .table-scroll{
+    border:1px solid var(--border); border-radius:var(--radius-md); overflow:auto; max-height:600px; position:relative;
+  }
+  .table-scroll::-webkit-scrollbar{width:8px; height:8px;}
+  .table-scroll::-webkit-scrollbar-thumb{background:var(--border-strong); border-radius:4px;}
+  table.results-table{border-collapse:separate; border-spacing:0; width:100%; font-size:.82rem;}
+  .results-table thead th{
+    position:sticky; top:0; background:var(--surface-alt); z-index:5; text-align:left; padding:.75rem .9rem;
+    font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text-tertiary);
+    border-bottom:1px solid var(--border); white-space:nowrap;
+  }
+  .results-table thead th.col-name-head{position:sticky; left:0; z-index:6; box-shadow:1px 0 0 var(--border);}
+  .th-info{margin-left:.35rem; cursor:help; color:var(--text-tertiary); font-size:.72rem;}
+  .th-info:hover{color:var(--blue);}
+  .results-table tbody td{padding:.65rem .9rem; border-bottom:1px solid var(--border); vertical-align:middle;}
+  .results-table tbody tr.data-row{cursor:pointer; transition:.12s;}
+  .results-table tbody tr.data-row:hover{background:var(--blue-pale);}
+  .results-table tbody tr.data-row.expanded{background:var(--blue-pale);}
+  .col-name-cell{
+    position:sticky; left:0; background:var(--surface); z-index:2; box-shadow:1px 0 0 var(--border);
+    font-family:'JetBrains Mono',monospace; font-weight:700;
+  }
+  .results-table tbody tr.data-row:hover .col-name-cell,
+  .results-table tbody tr.data-row.expanded .col-name-cell{background:var(--blue-pale);}
+  .col-name-cell .cn-inner{display:flex; align-items:center; gap:.5rem;}
+  .col-name-cell i.chev{font-size:.68rem; color:var(--text-tertiary); transition:.15s;}
+  .data-row.expanded .chev{transform:rotate(90deg); color:var(--blue);}
+  .cell-ratio{display:flex; align-items:center; gap:.4rem; font-family:'JetBrains Mono',monospace; font-weight:700; white-space:nowrap;}
+  .cell-value{font-family:'JetBrains Mono',monospace; white-space:nowrap;}
+  .cell-na{color:var(--text-tertiary); font-family:'Inter',sans-serif;}
+  .detail-row td{background:var(--surface-alt); padding:1rem 1.2rem;}
+  .detail-row .metric-results{margin:0;}
+  .type-tag-inline{
+    font-size:.63rem; font-weight:700; text-transform:uppercase; padding:.12rem .4rem; border-radius:.4rem; margin-left:.5rem;
+  }
+  .type-tag-inline.numeric{background:var(--blue-light); color:var(--blue-dark);}
+  .type-tag-inline.categorical{background:#f3e8ff; color:#7e22ce;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon"><i class="fas fa-chart-simple"></i></div>
+      <div class="header-titles">
+        <h1>Data Profiling</h1>
+        <p>Explore column-level quality metrics powered by AWS Deequ</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="badge"><i class="fas fa-cubes"></i> AWS Deequ · 25+ metrics</span>
+    </div>
+  </div>
+
+  <!-- Mode switch -->
+  <div class="mode-row">
+    <div class="mode-switch" id="modeSwitch">
+      <button class="mode-btn active" data-mode="manual"><span class="mode-dot"></span><i class="fas fa-sliders"></i> Manual profiling</button>
+      <button class="mode-btn" data-mode="auto"><span class="mode-dot"></span><i class="fas fa-rotate"></i> Auto profiling</button>
+    </div>
+    <div class="mode-hint" id="modeHint"><i class="fas fa-circle-info"></i> Pick columns and metrics, then submit — picked up by the batch every 30 minutes.</div>
+  </div>
+
+  <!-- Overview -->
+  <div class="overview" id="overviewStrip"></div>
+
+  <!-- ============ MANUAL MODE ============ -->
+  <div id="manualControls">
+    <div class="panel panel-pad" style="margin-bottom:1.5rem;">
+      <div class="panel-head">
+        <div>
+          <div class="ph-title"><i class="fas fa-sliders"></i> Scope</div>
+          <div class="ph-sub">Choose which columns and time window to profile</div>
+        </div>
+      </div>
+      <div class="config-grid">
+        <div>
+          <div class="field-label"><i class="fas fa-table-columns"></i> Columns</div>
+          <div class="chips-field" id="selectedColumnsContainer"></div>
+          <div class="field-actions">
+            <button class="btn-ghost" id="toggleColumnDropdown"><i class="fas fa-plus"></i> Add column</button>
+            <div class="col-dropdown" id="columnDropdown">
+              <input type="text" class="col-search" id="columnSearch" placeholder="Search columns…">
+              <div class="col-option-list" id="columnOptionList"></div>
+            </div>
+            <button class="btn-text" id="selectAllColumnsBtn">Select all</button>
+            <button class="btn-text" id="clearColumnsBtn">Clear</button>
+          </div>
+        </div>
+        <div>
+          <div class="field-label"><i class="far fa-calendar"></i> Date range</div>
+          <div class="date-field">
+            <input type="date" id="startDate" class="date-input" value="2024-01-01">
+            <span class="date-arrow"><i class="fas fa-arrow-right"></i></span>
+            <input type="date" id="endDate" class="date-input" value="2025-12-31">
+            <span class="limit-pill"><i class="fas fa-filter"></i> max 10k records</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-pad" style="margin-bottom:1.5rem;">
+      <div class="panel-head">
+        <div>
+          <div class="ph-title"><i class="fas fa-list-check"></i> Metrics</div>
+          <div class="ph-sub">Pick what to measure — hover the info icon for how to read each one</div>
+        </div>
+      </div>
+      <div class="metric-categories" id="metricsDashboard"></div>
+    </div>
+
+    <div class="action-bar" style="margin-bottom:1.5rem;">
+      <div class="selection-summary">
+        <span><i class="fas fa-table-columns" style="color:var(--blue);"></i> <strong id="colCountText">0</strong> columns</span>
+        <span><i class="fas fa-list-check" style="color:var(--blue);"></i> <strong id="metricCountText">0</strong> metrics</span>
+        <span class="batch-note" id="batchNote"><i class="fas fa-clock"></i></span>
+      </div>
+      <button class="run-button" id="runProfilingBtn"><i class="fas fa-play"></i> Submit for profiling</button>
+    </div>
+  </div>
+
+  <!-- ============ AUTO MODE ============ -->
+  <div id="autoControls" style="display:none; margin-bottom:1.5rem;">
+    <div class="panel panel-pad">
+      <div class="panel-head">
+        <div>
+          <div class="ph-title"><i class="fas fa-rotate"></i> Automatic profiling</div>
+          <div class="ph-sub">Runs on its own every month — no setup needed</div>
+        </div>
+      </div>
+      <div class="auto-hero" style="margin-bottom:1rem;">
+        <div class="auto-hero-left">
+          <div class="auto-hero-icon"><i class="fas fa-calendar-check"></i></div>
+          <div>
+            <div class="auto-hero-title">Monthly schedule</div>
+            <div class="auto-hero-sub">Profiles every column with the full metric catalog, automatically.</div>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label" id="autoToggleLabel">Active</span>
+          <div class="toggle-switch on" id="autoToggle"></div>
+        </div>
+      </div>
+      <div class="auto-stats" style="margin-bottom:1rem;">
+        <div class="auto-stat">
+          <div class="as-label"><i class="fas fa-clock-rotate-left"></i> Last run</div>
+          <div class="as-value" id="autoLastRun">—</div>
+          <div class="as-sub" id="autoLastRunSub">No runs yet</div>
+        </div>
+        <div class="auto-stat">
+          <div class="as-label"><i class="fas fa-hourglass-half"></i> Next run</div>
+          <div class="as-value" id="autoNextRun">—</div>
+          <div class="as-sub">First of every month, 02:00</div>
+        </div>
+        <div class="auto-stat">
+          <div class="as-label"><i class="fas fa-layer-group"></i> Coverage</div>
+          <div class="as-value">7 columns</div>
+          <div class="as-sub">All 10 catalog metrics</div>
+        </div>
+      </div>
+      <div class="coverage-note"><i class="fas fa-circle-info"></i> Auto runs always use the full column set and complete metric catalog, so results are comparable month over month.</div>
+    </div>
+  </div>
+
+  <!-- Main: results + history -->
+  <div class="main-layout">
+    <div class="panel panel-pad" id="resultsPanel">
+      <div class="panel-head">
+        <div>
+          <div class="ph-title"><i class="fas fa-chart-column"></i> Results</div>
+          <div class="ph-sub" id="resultsSub">Run profiling to see column-level metrics</div>
+        </div>
+      </div>
+      <div class="help-strip"><i class="fas fa-circle-info"></i> New to these metrics? Hover the <i class="fas fa-circle-info" style="margin:0 .15rem;"></i> icon on any result to see what it means and how to read it.</div>
+      <div id="resultsContent"></div>
+      <div class="quality-legend">
+        <span><span class="status-dot good"></span> Healthy</span>
+        <span><span class="status-dot warn"></span> Needs review</span>
+        <span><span class="status-dot bad"></span> Attention needed</span>
+      </div>
+    </div>
+    <div class="panel panel-pad" id="historyPanel">
+      <div class="panel-head">
+        <div class="ph-title"><i class="fas fa-clock-rotate-left"></i> <span id="historyTitle">Job history</span></div>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const BASE_COLUMNS = [
+    { id:'age', name:'age', type:'numeric' },
+    { id:'income', name:'income', type:'numeric' },
+    { id:'credit_score', name:'credit_score', type:'numeric' },
+    { id:'region', name:'region', type:'categorical' },
+    { id:'tenure_months', name:'tenure_months', type:'numeric' },
+    { id:'product_category', name:'product_category', type:'categorical' },
+    { id:'transaction_amount', name:'transaction_amount', type:'numeric' }
+  ];
+  const dataset = {
+    age:[25,32,47,29,38,55,29,41,null,36],
+    income:[54000,62000,87000,49000,72000,105000,68000,59000,78000,null],
+    credit_score:[680,720,790,650,700,810,670,690,null,740],
+    region:['North','South','East','West','North','East','South','West','North','East'],
+    tenure_months:[12,48,6,24,36,60,18,30,42,9],
+    product_category:['A','B','A','C','B','A','C','B','A','C'],
+    transaction_amount:[120.5,89.0,250.0,45.9,178.2,310.0,99.5,75.0,210.3,null]
+  };
+  // Simulate a wide table (e.g. 100+ columns) so the UI can be stress-tested at scale.
+  let seed = 42;
+  function rand(){ seed = (seed*1103515245+12345) & 0x7fffffff; return seed/0x7fffffff; }
+  const EXTRA_COUNT = 93;
+  const CATS = ['A','B','C','D'];
+  for(let i=1;i<=EXTRA_COUNT;i++){
+    const isNumeric = i%3!==0;
+    const id = (isNumeric?'num_field_':'cat_field_') + String(i).padStart(3,'0');
+    BASE_COLUMNS.push({ id, name:id, type:isNumeric?'numeric':'categorical' });
+    const vals = [];
+    for(let r=0;r<10;r++){
+      if(rand()<0.08){ vals.push(null); continue; }
+      vals.push(isNumeric ? Math.round(rand()*1000*(1+i%5)) / (i%3===0?1:10) : CATS[Math.floor(rand()*CATS.length)]);
+    }
+    dataset[id] = vals;
+  }
+  const ALL_COLUMNS = BASE_COLUMNS;
+  const COL_MAP = Object.fromEntries(ALL_COLUMNS.map(c=>[c.id,c]));
+
+  const METRIC_CATEGORIES = [
+    {
+      id:'completeness', category:'Completeness & Uniqueness', icon:'fas fa-check-double',
+      desc:'How complete and distinct the values in a column are',
+      metrics:[
+        { id:'completeness', name:'Completeness', kind:'ratio', desc:'Share of non-null values.', interpret:'Closer to 1.0 means fewer gaps in the data.' },
+        { id:'uniqueness', name:'Uniqueness', kind:'ratio', desc:'Distinct values as a share of all rows.', interpret:'Low uniqueness can signal duplicate records.' },
+        { id:'distinctCount', name:'Distinct count', kind:'count', desc:'Number of unique values seen.', interpret:'Compare against expected category counts.' },
+        { id:'nullCount', name:'Null count', kind:'count', desc:'Total missing (null) entries.', interpret:'Rising counts often point to an upstream ingestion issue.' },
+        { id:'duplicateCount', name:'Duplicate count', kind:'count', desc:'Values that repeat more than once.', interpret:'High counts may mean repeated records rather than legitimate reuse.' }
+      ]
+    },
+    {
+      id:'stats', category:'Statistical Summary', icon:'fas fa-chart-bar',
+      desc:'Central tendency and spread, for numeric columns',
+      metrics:[
+        { id:'mean', name:'Mean', kind:'stat', numeric:true, desc:'Arithmetic average.', interpret:'Sensitive to outliers — check alongside the median.' },
+        { id:'median', name:'Median', kind:'stat', numeric:true, desc:'The 50th percentile value.', interpret:'A more robust center than the mean.' },
+        { id:'stdDev', name:'Std deviation', kind:'stat', numeric:true, desc:'Spread around the mean.', interpret:'Higher values mean more variability.' },
+        { id:'min', name:'Minimum', kind:'stat', numeric:true, desc:'Smallest observed value.', interpret:'Unexpectedly low values can flag bad data entry.' },
+        { id:'max', name:'Maximum', kind:'stat', numeric:true, desc:'Largest observed value.', interpret:'Unexpectedly high values can flag outliers.' }
+      ]
+    }
+  ];
+  const ALL_METRICS = METRIC_CATEGORIES.flatMap(c=>c.metrics);
+  const METRIC_MAP = Object.fromEntries(ALL_METRICS.map(m=>[m.id,m]));
+  const ALL_METRIC_IDS = ALL_METRICS.map(m=>m.id);
+  const ALL_COLUMN_IDS = ALL_COLUMNS.map(c=>c.id);
+
+  let mode = 'manual';
+  let selectedColumns = new Set(['age','income']);
+  let selectedMetrics = new Set(['completeness','uniqueness','distinctCount','mean','min','max']);
+  let manualHistory = [];
+  let autoHistory = [];
+  let activeManualJobId = null;
+  let activeAutoJobId = null;
+  let manualJobInFlight = false;
+  let autoEnabled = true;
+  const timers = [];
+
+  // ---------- DOM refs ----------
+  const selectedColumnsContainer = document.getElementById('selectedColumnsContainer');
+  const columnDropdown = document.getElementById('columnDropdown');
+  const toggleBtn = document.getElementById('toggleColumnDropdown');
+  const resultsContent = document.getElementById('resultsContent');
+  const resultsSub = document.getElementById('resultsSub');
+  const historyList = document.getElementById('historyList');
+  const historyTitle = document.getElementById('historyTitle');
+  const metricsDashboard = document.getElementById('metricsDashboard');
+  const overviewStrip = document.getElementById('overviewStrip');
+  const runBtn = document.getElementById('runProfilingBtn');
+  const manualControls = document.getElementById('manualControls');
+  const autoControls = document.getElementById('autoControls');
+  const modeHint = document.getElementById('modeHint');
+  const batchNote = document.getElementById('batchNote');
+
+  // ---------- helpers ----------
+  function fmtNum(n){
+    if(n===null || n===undefined) return '—';
+    if(Number.isInteger(n)) return n.toString();
+    return n.toFixed(2);
+  }
+  function fmtTime(d){ return d.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}); }
+  function fmtClock(d){ return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+  function ratioStatus(v){ return v>=0.95 ? 'good' : v>=0.8 ? 'warn' : 'bad'; }
+  function ratioColor(status){ return status==='good' ? '#16a34a' : status==='warn' ? '#d97706' : '#dc2626'; }
+  function ratioSentence(name, v){
+    const pct = Math.round(v*100);
+    if(name==='Completeness'){
+      if(v>=0.95) return pct+'% of values are present — very few gaps.';
+      if(v>=0.8) return pct+'% complete — some missing values worth a look.';
+      return pct+'% complete — a significant share of values is missing.';
+    }
+    if(name==='Uniqueness'){
+      if(v>=0.95) return pct+'% of rows are distinct — little to no duplication.';
+      if(v>=0.8) return pct+'% distinct — a modest amount of repetition.';
+      return pct+'% distinct — many repeated values, worth checking for duplicates.';
+    }
+    return pct+'%';
+  }
+  function nextBatchTime(){
+    const now = new Date(); const next = new Date(now);
+    if(now.getMinutes() < 30){ next.setMinutes(30,0,0); }
+    else { next.setHours(now.getHours()+1); next.setMinutes(0,0,0); }
+    return next;
+  }
+  function nextMonthlyRun(){
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth()+1, 1, 2, 0, 0);
+  }
+
+  function mean(arr){ return arr.reduce((a,b)=>a+b,0)/arr.length; }
+  function median(arr){
+    const s=[...arr].sort((a,b)=>a-b); const mid=Math.floor(s.length/2);
+    return s.length%2 ? s[mid] : (s[mid-1]+s[mid])/2;
+  }
+  function stdDev(arr){ const m=mean(arr); return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length); }
+
+  function computeProfile(colId, metricIds){
+    const col = COL_MAP[colId];
+    const vals = dataset[colId] || [];
+    const filtered = vals.filter(v=>v!==null && v!=='');
+    const distinct = new Set(filtered).size;
+    const res = {};
+    metricIds.forEach(id=>{
+      const spec = METRIC_MAP[id];
+      if(spec.numeric && col.type!=='numeric'){ res[id] = { value:null, na:true }; return; }
+      switch(id){
+        case 'completeness': res[id] = { value: vals.length ? filtered.length/vals.length : 0, kind:'ratio' }; break;
+        case 'uniqueness': res[id] = { value: vals.length ? distinct/vals.length : 0, kind:'ratio' }; break;
+        case 'distinctCount': res[id] = { value: distinct, kind:'count' }; break;
+        case 'nullCount': res[id] = { value: vals.length - filtered.length, kind:'count' }; break;
+        case 'duplicateCount': res[id] = { value: Math.max(filtered.length - distinct, 0), kind:'count' }; break;
+        case 'mean': res[id] = { value: filtered.length ? mean(filtered) : null, kind:'stat' }; break;
+        case 'median': res[id] = { value: filtered.length ? median(filtered) : null, kind:'stat' }; break;
+        case 'stdDev': res[id] = { value: filtered.length ? stdDev(filtered) : null, kind:'stat' }; break;
+        case 'min': res[id] = { value: filtered.length ? Math.min(...filtered) : null, kind:'stat' }; break;
+        case 'max': res[id] = { value: filtered.length ? Math.max(...filtered) : null, kind:'stat' }; break;
+        default: res[id] = { value:null, na:true };
+      }
+    });
+    return res;
+  }
+
+  // ---------- tooltip (shared by metric cards + result tiles) ----------
+  function showTooltip(e, metric){
+    hideTooltip();
+    const tip = document.createElement('div'); tip.id='metric-tooltip'; tip.className='tooltip-desc';
+    tip.innerHTML = `<strong>${metric.name}</strong><br>${metric.desc}${metric.interpret ? '<em>'+metric.interpret+'</em>' : ''}`;
+    tip.style.display='block';
+    document.body.appendChild(tip);
+    const rect = e.target.getBoundingClientRect();
+    let left = rect.left - 220 + rect.width;
+    if(left < 8) left = 8;
+    tip.style.left = left+'px';
+    tip.style.top = (rect.bottom+8)+'px';
+  }
+  function hideTooltip(){ const t=document.getElementById('metric-tooltip'); if(t) t.remove(); }
+
+  // ---------- columns ----------
+  function renderColumns(){
+    selectedColumnsContainer.innerHTML = '';
+    if(selectedColumns.size===0){
+      selectedColumnsContainer.innerHTML = '<span class="chip-empty">No columns selected</span>';
+    } else {
+      selectedColumns.forEach(id=>{
+        const chip = document.createElement('div'); chip.className='chip';
+        chip.innerHTML = `<span class="type-dot"></span>${id}<i class="fas fa-xmark remove" data-remove="${id}"></i>`;
+        selectedColumnsContainer.appendChild(chip);
+      });
+      selectedColumnsContainer.querySelectorAll('.remove').forEach(icon=>{
+        icon.addEventListener('click', e=>{
+          selectedColumns.delete(e.target.dataset.remove);
+          renderColumns(); renderColumnDropdown(); updateCounts();
+        });
+      });
+    }
+    updateCounts();
+  }
+  const columnOptionList = document.getElementById('columnOptionList');
+  const columnSearch = document.getElementById('columnSearch');
+  function renderColumnDropdown(){
+    const query = columnSearch.value.trim().toLowerCase();
+    const avail = ALL_COLUMNS.filter(c=>!selectedColumns.has(c.id) && (!query || c.name.toLowerCase().includes(query)));
+    columnOptionList.innerHTML = avail.length ? '' : `<div class="col-dropdown-empty">${query ? 'No matching columns' : 'All columns added'}</div>`;
+    avail.forEach(col=>{
+      const opt = document.createElement('div'); opt.className='col-option';
+      opt.innerHTML = `<span><i class="fas fa-table-columns" style="color:var(--blue); margin-right:.4rem;"></i>${col.name}</span><span class="col-type">${col.type}</span>`;
+      opt.onclick = ()=>{ selectedColumns.add(col.id); renderColumns(); renderColumnDropdown(); };
+      columnOptionList.appendChild(opt);
+    });
+  }
+  toggleBtn.onclick = e=>{ e.stopPropagation(); columnDropdown.classList.toggle('active'); if(columnDropdown.classList.contains('active')){ columnSearch.value=''; renderColumnDropdown(); columnSearch.focus(); } };
+  columnSearch.addEventListener('input', renderColumnDropdown);
+  columnSearch.addEventListener('click', e=>e.stopPropagation());
+  document.addEventListener('click', e=>{ if(!columnDropdown.contains(e.target) && e.target!==toggleBtn) columnDropdown.classList.remove('active'); });
+  document.getElementById('selectAllColumnsBtn').onclick = ()=>{ ALL_COLUMNS.forEach(c=>selectedColumns.add(c.id)); renderColumns(); renderColumnDropdown(); };
+  document.getElementById('clearColumnsBtn').onclick = ()=>{ selectedColumns.clear(); renderColumns(); renderColumnDropdown(); };
+
+  // ---------- metrics selection ----------
+  function renderMetrics(){
+    metricsDashboard.innerHTML = '';
+    METRIC_CATEGORIES.forEach(cat=>{
+      const sec = document.createElement('div'); sec.className='metric-category';
+      const allSelected = cat.metrics.every(m=>selectedMetrics.has(m.id));
+      sec.innerHTML = `
+        <div class="cat-head">
+          <div class="cat-head-left">
+            <div class="cat-icon"><i class="${cat.icon}"></i></div>
+            <div><div class="cat-name">${cat.category}</div><div class="cat-desc">${cat.desc}</div></div>
+          </div>
+          <button class="cat-toggle" data-cat="${cat.id}">${allSelected ? 'Deselect all' : 'Select all'}</button>
+        </div>
+        <div class="metrics-grid"></div>`;
+      const grid = sec.querySelector('.metrics-grid');
+      cat.metrics.forEach(m=>{
+        const card = document.createElement('div');
+        card.className = `metric-card ${selectedMetrics.has(m.id) ? 'selected' : ''}`;
+        card.innerHTML = `
+          <div class="metric-row">
+            <span class="metric-name">${m.name}</span>
+            <span class="metric-check"><i class="fas fa-check"></i></span>
+          </div>
+          <div class="metric-desc">${m.desc}</div>
+          <i class="fas fa-circle-info metric-info" data-tip="${m.id}"></i>`;
+        card.onclick = ()=>{
+          selectedMetrics.has(m.id) ? selectedMetrics.delete(m.id) : selectedMetrics.add(m.id);
+          renderMetrics(); updateCounts();
+        };
+        const infoIcon = card.querySelector('.metric-info');
+        infoIcon.addEventListener('mouseenter', e=>{ e.stopPropagation(); showTooltip(e, m); });
+        infoIcon.addEventListener('mouseleave', hideTooltip);
+        infoIcon.addEventListener('click', e=>e.stopPropagation());
+        grid.appendChild(card);
+      });
+      sec.querySelector('.cat-toggle').onclick = e=>{
+        e.stopPropagation();
+        if(allSelected){ cat.metrics.forEach(m=>selectedMetrics.delete(m.id)); }
+        else { cat.metrics.forEach(m=>selectedMetrics.add(m.id)); }
+        renderMetrics(); updateCounts();
+      };
+      metricsDashboard.appendChild(sec);
+    });
+  }
+
+  function updateCounts(){
+    document.getElementById('colCountText').textContent = selectedColumns.size;
+    document.getElementById('metricCountText').textContent = selectedMetrics.size;
+  }
+
+  // ---------- rendering results / history (mode-aware) ----------
+  function currentHistory(){ return mode==='manual' ? manualHistory : autoHistory; }
+  function currentActiveId(){ return mode==='manual' ? activeManualJobId : activeAutoJobId; }
+  function setActiveId(id){ if(mode==='manual') activeManualJobId=id; else activeAutoJobId=id; }
+
+  function buildResultTileHTML(spec, r){
+    if(r.na){
+      return `<div class="result-tile"><div class="rt-label">${spec.name}</div><div class="rt-value na">Not applicable</div><i class="fas fa-circle-info rt-info" data-metric="${spec.id}"></i></div>`;
+    }
+    if(r.kind==='ratio'){
+      const pct = Math.round(r.value*100);
+      const status = ratioStatus(r.value);
+      return `<div class="result-tile ring-tile">
+        <div class="ring" style="--pct:${pct}; --ring-color:${ratioColor(status)};"><span>${pct}%</span></div>
+        <div>
+          <div class="rt-label"><span class="status-dot ${status}"></span>${spec.name}</div>
+          <div class="rt-note">${ratioSentence(spec.name, r.value)}</div>
+        </div>
+        <i class="fas fa-circle-info rt-info" data-metric="${spec.id}"></i>
+      </div>`;
+    }
+    return `<div class="result-tile"><div class="rt-label">${spec.name}</div><div class="rt-value">${fmtNum(r.value)}</div><i class="fas fa-circle-info rt-info" data-metric="${spec.id}"></i></div>`;
+  }
+
+  function attachResultTooltips(container){
+    container.querySelectorAll('.rt-info, .th-info').forEach(icon=>{
+      const spec = METRIC_MAP[icon.dataset.metric];
+      icon.addEventListener('mouseenter', e=>{ e.stopPropagation(); showTooltip(e, spec); });
+      icon.addEventListener('mouseleave', hideTooltip);
+    });
+  }
+
+  function renderJobStatusCard(job){
+    if(job.status==='queued'){
+      resultsSub.textContent = `Submitted ${fmtTime(job.submittedAt)}`;
+      resultsContent.innerHTML = `<div class="job-status-card queued">
+        <i class="fas fa-hourglass-half jsc-icon"></i>
+        <div class="jsc-title">Queued for the next batch</div>
+        <div class="jsc-sub">This run will be picked up by the profiling batch, which executes every 30 minutes. Next batch: <strong class="mono">${fmtClock(job.nextBatchAt)}</strong>. Results will appear here automatically.</div>
+      </div>`;
+    } else if(job.status==='running'){
+      resultsSub.textContent = `Started ${fmtTime(job.startedAt || job.submittedAt)}`;
+      resultsContent.innerHTML = `<div class="job-status-card running">
+        <i class="fas fa-circle-notch spin jsc-icon"></i>
+        <div class="jsc-title">Batch is running</div>
+        <div class="jsc-sub">Computing metrics for ${job.columns.length} column(s). This usually takes a few moments.</div>
+      </div>`;
+    }
+  }
+
+  // ---- table view state (persists per job while it's on screen) ----
+  let tableSearch = '';
+  let tableStatusFilter = 'all';
+  let tableSort = 'name';
+  let expandedRows = new Set();
+
+  function columnWorstStatus(res, metricIds){
+    let worst = null;
+    const rank = { good:0, warn:1, bad:2 };
+    metricIds.forEach(id=>{
+      const r = res[id];
+      if(!r || r.na || r.kind!=='ratio') return;
+      const s = ratioStatus(r.value);
+      if(worst===null || rank[s]>rank[worst]) worst = s;
+    });
+    return worst;
+  }
+
+  function displayJobResults(job){
+    setActiveId(job.id);
+    if(job.status!=='completed'){ renderJobStatusCard(job); renderHistory(); return; }
+    tableSearch=''; tableStatusFilter='all'; tableSort='name'; expandedRows=new Set();
+    resultsSub.textContent = mode==='auto'
+      ? `Automatic run · ${job.timestamp} · ${job.columns.length} columns`
+      : `Completed ${job.timestamp} · submitted ${fmtTime(job.submittedAt)} · ${job.columns.length} columns`;
+    renderResultsTable(job);
+    renderHistory();
+  }
+
+  function renderResultsTable(job){
+    const metricIds = job.metrics;
+    let rows = job.columns.map(colId=>({ colId, col:COL_MAP[colId], res:job.results[colId] }));
+
+    if(tableSearch) rows = rows.filter(r=>r.colId.toLowerCase().includes(tableSearch));
+    if(tableStatusFilter!=='all') rows = rows.filter(r=>columnWorstStatus(r.res, metricIds)===tableStatusFilter);
+    if(tableSort==='name') rows.sort((a,b)=>a.colId.localeCompare(b.colId));
+    else if(tableSort==='status'){
+      const rank = { bad:0, warn:1, good:2, null:3 };
+      rows.sort((a,b)=>rank[columnWorstStatus(a.res,metricIds)] - rank[columnWorstStatus(b.res,metricIds)] || a.colId.localeCompare(b.colId));
+    }
+
+    const totalCount = job.columns.length;
+    const hasRatioMetric = metricIds.some(id=>METRIC_MAP[id].kind==='ratio');
+
+    let html = `<div class="results-toolbar">
+      <div class="results-search"><i class="fas fa-magnifying-glass"></i><input type="text" id="tableSearchInput" placeholder="Search columns…" value="${tableSearch}"></div>
+      ${hasRatioMetric ? `<div class="status-filters">
+        <button class="status-filter-btn ${tableStatusFilter==='all'?'active':''}" data-filter="all">All</button>
+        <button class="status-filter-btn ${tableStatusFilter==='good'?'active':''}" data-filter="good"><span class="status-dot good"></span>Healthy</button>
+        <button class="status-filter-btn ${tableStatusFilter==='warn'?'active':''}" data-filter="warn"><span class="status-dot warn"></span>Needs review</button>
+        <button class="status-filter-btn ${tableStatusFilter==='bad'?'active':''}" data-filter="bad"><span class="status-dot bad"></span>Attention</button>
+      </div>` : ''}
+      <select class="sort-select" id="tableSortSelect">
+        <option value="name" ${tableSort==='name'?'selected':''}>Sort: Column name</option>
+        ${hasRatioMetric ? `<option value="status" ${tableSort==='status'?'selected':''}>Sort: Worst status first</option>` : ''}
+      </select>
+    </div>
+    <div class="results-count">Showing ${rows.length} of ${totalCount} columns${rows.length!==totalCount ? ' · click a row to see the full breakdown' : ' · click a row to see the full breakdown'}</div>
+    <div class="table-scroll"><table class="results-table">
+      <thead><tr>
+        <th class="col-name-head">Column</th>
+        ${metricIds.map(id=>`<th>${METRIC_MAP[id].name}<i class="fas fa-circle-info th-info" data-metric="${id}"></i></th>`).join('')}
+      </tr></thead>
+      <tbody>`;
+
+    if(rows.length===0){
+      html += `<tr><td colspan="${metricIds.length+1}"><div class="empty-state"><i class="fas fa-magnifying-glass"></i><p>No columns match your search or filter</p></div></td></tr>`;
+    }
+
+    rows.forEach(({colId, col, res})=>{
+      const isExpanded = expandedRows.has(colId);
+      html += `<tr class="data-row ${isExpanded?'expanded':''}" data-col="${colId}">
+        <td class="col-name-cell"><div class="cn-inner"><i class="fas fa-chevron-right chev"></i>${colId}<span class="type-tag-inline ${col.type}">${col.type}</span></div></td>`;
+      metricIds.forEach(id=>{
+        const r = res[id];
+        if(r.na){ html += `<td class="cell-na">—</td>`; }
+        else if(r.kind==='ratio'){
+          const pct = Math.round(r.value*100); const status = ratioStatus(r.value);
+          html += `<td><div class="cell-ratio"><span class="status-dot ${status}"></span>${pct}%</div></td>`;
+        } else {
+          html += `<td class="cell-value">${fmtNum(r.value)}</td>`;
+        }
+      });
+      html += `</tr>`;
+      if(isExpanded){
+        html += `<tr class="detail-row"><td colspan="${metricIds.length+1}"><div class="metric-results">`;
+        metricIds.forEach(id=>{ html += buildResultTileHTML(METRIC_MAP[id], res[id]); });
+        html += `</div></td></tr>`;
+      }
+    });
+
+    html += `</tbody></table></div>`;
+    resultsContent.innerHTML = html;
+    attachResultTooltips(resultsContent);
+
+    const searchInput = document.getElementById('tableSearchInput');
+    searchInput.addEventListener('input', e=>{ tableSearch = e.target.value.trim().toLowerCase(); renderResultsTable(job); });
+    searchInput.focus(); searchInput.selectionStart = searchInput.selectionEnd = searchInput.value.length;
+    document.querySelectorAll('.status-filter-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ tableStatusFilter = btn.dataset.filter; renderResultsTable(job); });
+    });
+    document.getElementById('tableSortSelect').addEventListener('change', e=>{ tableSort = e.target.value; renderResultsTable(job); });
+    resultsContent.querySelectorAll('.data-row').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        const id = row.dataset.col;
+        expandedRows.has(id) ? expandedRows.delete(id) : expandedRows.add(id);
+        renderResultsTable(job);
+      });
+    });
+  }
+
+  function renderHistory(){
+    const hist = currentHistory();
+    const activeId = currentActiveId();
+    historyTitle.textContent = mode==='manual' ? 'Job history' : 'Run history';
+    historyList.innerHTML = hist.length ? '' : `<div class="empty-state"><i class="fas fa-clock-rotate-left"></i><p>No previous runs</p></div>`;
+    hist.forEach(job=>{
+      const div = document.createElement('div');
+      div.className = `history-item ${job.status} ${job.id===activeId ? 'active' : ''}`;
+      const badge = job.status==='completed'
+        ? `<span class="status-badge completed"><i class="fas fa-check"></i>Completed</span>`
+        : job.status==='running'
+          ? `<span class="status-badge running"><span class="pulse"></span>Running</span>`
+          : `<span class="status-badge queued"><span class="pulse"></span>Queued</span>`;
+      const timeLabel = job.status==='completed' ? job.timestamp : fmtTime(job.submittedAt);
+      div.innerHTML = `
+        <div class="history-top">
+          <div class="history-time">${timeLabel}</div>
+          ${badge}
+        </div>
+        <div class="history-meta">
+          <span><i class="fas fa-table-columns"></i>${job.columns.length} cols</span>
+          <span><i class="fas fa-list-check"></i>${job.metrics.length} metrics</span>
+          ${mode==='manual' ? `<span><i class="far fa-calendar"></i>${job.dateRange}</span>` : ''}
+        </div>`;
+      div.onclick = ()=> displayJobResults(job);
+      historyList.appendChild(div);
+    });
+  }
+
+  // ---------- manual run flow (batch simulation) ----------
+  function updateRunButtonState(){
+    runBtn.disabled = manualJobInFlight || selectedColumns.size===0 || selectedMetrics.size===0;
+    runBtn.innerHTML = manualJobInFlight
+      ? '<i class="fas fa-circle-notch spin"></i> Queued…'
+      : '<i class="fas fa-play"></i> Submit for profiling';
+  }
+
+  function updateBatchNote(){
+    batchNote.innerHTML = `<i class="fas fa-clock"></i> Next batch pickup: <strong class="mono">${fmtClock(nextBatchTime())}</strong>`;
+  }
+
+  function runProfiling(){
+    if(selectedColumns.size===0 || selectedMetrics.size===0 || manualJobInFlight) return;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const job = {
+      id: Date.now(), status:'queued',
+      submittedAt: new Date(), nextBatchAt: nextBatchTime(),
+      columns:[...selectedColumns], metrics:[...selectedMetrics],
+      dateRange:`${startDate} → ${endDate}`, results:{}
+    };
+    manualHistory.unshift(job);
+    if(manualHistory.length>15) manualHistory.pop();
+    manualJobInFlight = true;
+    updateRunButtonState();
+    displayJobResults(job);
+    renderOverview();
+
+    timers.push(setTimeout(()=>{
+      job.status = 'running'; job.startedAt = new Date();
+      if(currentActiveId()===job.id) displayJobResults(job); else renderHistory();
+    }, 1800));
+
+    timers.push(setTimeout(()=>{
+      job.status = 'completed';
+      job.completedAt = new Date();
+      job.timestamp = fmtTime(job.completedAt);
+      job.columns.forEach(col=>{ job.results[col] = computeProfile(col, job.metrics); });
+      manualJobInFlight = false;
+      updateRunButtonState();
+      if(currentActiveId()===job.id) displayJobResults(job); else renderHistory();
+      renderOverview();
+    }, 4200));
+  }
+
+  document.getElementById('runProfilingBtn').addEventListener('click', runProfiling);
+
+  // ---------- auto mode ----------
+  function seedAutoHistory(){
+    const now = new Date();
+    const runDates = [
+      new Date(now.getFullYear(), now.getMonth(), 1, 2, 0),
+      new Date(now.getFullYear(), now.getMonth()-1, 1, 2, 0),
+      new Date(now.getFullYear(), now.getMonth()-2, 1, 2, 0)
+    ];
+    autoHistory = runDates.map(d=>{
+      const job = {
+        id: d.getTime(), status:'completed', submittedAt:d, completedAt:d, timestamp: fmtTime(d),
+        columns:[...ALL_COLUMN_IDS], metrics:[...ALL_METRIC_IDS], dateRange:'full history', results:{}
+      };
+      job.columns.forEach(col=>{ job.results[col] = computeProfile(col, job.metrics); });
+      return job;
+    });
+    activeAutoJobId = autoHistory[0].id;
+  }
+
+  function renderAutoStats(){
+    const last = autoHistory[0];
+    document.getElementById('autoLastRun').textContent = last ? last.timestamp : '—';
+    document.getElementById('autoLastRunSub').textContent = last ? `${last.columns.length} columns · ${last.metrics.length} metrics` : 'No runs yet';
+    document.getElementById('autoNextRun').textContent = autoEnabled ? fmtTime(nextMonthlyRun()) : 'Paused';
+  }
+
+  const autoToggle = document.getElementById('autoToggle');
+  const autoToggleLabel = document.getElementById('autoToggleLabel');
+  autoToggle.addEventListener('click', ()=>{
+    autoEnabled = !autoEnabled;
+    autoToggle.classList.toggle('on', autoEnabled);
+    autoToggleLabel.textContent = autoEnabled ? 'Active' : 'Paused';
+    renderAutoStats();
+    renderOverview();
+  });
+
+  // ---------- overview ----------
+  function renderOverview(){
+    let cards;
+    if(mode==='manual'){
+      const completedJobs = manualHistory.filter(j=>j.status==='completed');
+      const lastCompleted = completedJobs[0];
+      let avgCompleteness = '—';
+      if(lastCompleted){
+        const ratios = [];
+        Object.values(lastCompleted.results).forEach(res=>{
+          Object.entries(res).forEach(([id,r])=>{ if(id==='completeness' && !r.na) ratios.push(r.value); });
+        });
+        if(ratios.length) avgCompleteness = Math.round((ratios.reduce((a,b)=>a+b,0)/ratios.length)*100)+'%';
+      }
+      cards = [
+        { label:'Columns available', value: ALL_COLUMNS.length, sub: ALL_COLUMNS.filter(c=>c.type==='numeric').length+' numeric · '+ALL_COLUMNS.filter(c=>c.type==='categorical').length+' categorical' },
+        { label:'Metrics catalog', value: ALL_METRICS.length, sub: METRIC_CATEGORIES.length+' categories' },
+        { label:'Avg. completeness', value: avgCompleteness, sub: lastCompleted ? 'from last completed run' : 'submit a run to see' },
+        { label:'Jobs submitted', value: manualHistory.length, sub: manualJobInFlight ? 'one in the batch queue' : (manualHistory.length ? 'last: '+(manualHistory[0].status==='completed'?manualHistory[0].timestamp:'in progress') : 'none yet') }
+      ];
+    } else {
+      const last = autoHistory[0];
+      cards = [
+        { label:'Columns profiled', value: ALL_COLUMNS.length, sub:'every run, full coverage' },
+        { label:'Metrics tracked', value: ALL_METRICS.length, sub: METRIC_CATEGORIES.length+' categories' },
+        { label:'Last automatic run', value: last ? last.timestamp : '—', sub:'completed successfully' },
+        { label:'Next automatic run', value: autoEnabled ? fmtTime(nextMonthlyRun()) : 'Paused', sub: autoEnabled ? '1st of next month, 02:00' : 'schedule disabled' }
+      ];
+    }
+    overviewStrip.innerHTML = cards.map(c=>`
+      <div class="overview-card">
+        <div class="ov-label">${c.label}</div>
+        <div class="ov-value">${c.value}</div>
+        <div class="ov-sub">${c.sub}</div>
+      </div>`).join('');
+  }
+
+  // ---------- mode switching ----------
+  const modeButtons = document.querySelectorAll('.mode-btn');
+  modeButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      mode = btn.dataset.mode;
+      modeButtons.forEach(b=>b.classList.toggle('active', b===btn));
+      manualControls.style.display = mode==='manual' ? 'block' : 'none';
+      autoControls.style.display = mode==='auto' ? 'block' : 'none';
+      document.querySelector('.action-bar').style.display = mode==='manual' ? 'flex' : 'none';
+      modeHint.innerHTML = mode==='manual'
+        ? '<i class="fas fa-circle-info"></i> Pick columns and metrics, then submit — picked up by the batch every 30 minutes.'
+        : '<i class="fas fa-circle-info"></i> Runs automatically every month across all columns — nothing to configure.';
+      renderOverview();
+      const hist = currentHistory();
+      const activeId = currentActiveId();
+      const job = hist.find(j=>j.id===activeId) || hist[0];
+      if(job) displayJobResults(job);
+      else {
+        resultsContent.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No results yet</p></div>';
+        resultsSub.textContent = mode==='manual' ? 'Submit a run to see column-level metrics' : 'No automatic runs yet';
+        renderHistory();
+      }
+    });
+  });
+
+  // ---------- init ----------
+  renderColumns(); renderColumnDropdown(); renderMetrics(); updateCounts(); updateBatchNote(); updateRunButtonState();
+  setInterval(updateBatchNote, 15000);
+  seedAutoHistory(); renderAutoStats();
+  renderOverview();
+
+  // seed one completed manual job so the page isn't empty on load
+  (function seedManualJob(){
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const now = new Date();
+    const job = {
+      id: Date.now()-1, status:'completed', submittedAt:now, completedAt:now, timestamp: fmtTime(now),
+      columns:[...selectedColumns], metrics:[...selectedMetrics], dateRange:`${startDate} → ${endDate}`, results:{}
+    };
+    job.columns.forEach(col=>{ job.results[col] = computeProfile(col, job.metrics); });
+    manualHistory.unshift(job);
+    activeManualJobId = job.id;
+    displayJobResults(job);
+    renderOverview();
+  })();
+})();
+</script>
+</body>
+</html>
